@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Local credentials and generated visual-audit output
+.env
+.env.*
+!.env.example
+server/.env
+artifacts/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

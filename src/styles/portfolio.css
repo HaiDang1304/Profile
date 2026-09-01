@@ -1,0 +1,68 @@
+/* Canvas Layer (Fixed full-viewport behind DOM, non-blocking) */
+.pixel-world-canvas-container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.pixel-world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Portfolio HTML UI Layer (Interactive on top) */
+.portfolio-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  pointer-events: auto;
+  overflow-x: clip;
+}
+
+/* Section styling with strictly tuned camera scroll proportions */
+.portfolio-section {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+.section-content {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+.hero-section {
+}
+
+.about-section {
+}
+
+.projects-section {
+}
+
+.playground-section {
+}
+
+.contact-section {
+}
+
+@media (max-width: 640px) {
+  .portfolio-section {
+    padding-inline: 0.75rem;
+    padding-block: 2rem;
+  }
+}
