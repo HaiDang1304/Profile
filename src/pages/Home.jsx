@@ -1,3 +1,4 @@
+import { EasterEggManager, EasterEgg } from '../components/EasterEggManager';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowDownRight, ArrowUpRight, BriefcaseBusiness, Code2, Globe2, Mail, MapPin,
@@ -8,6 +9,7 @@ import VisitorBox from '../components/VisitorBox';
 import ProjectReactions from '../components/ProjectReactions';
 import BugSmasher from '../components/BugSmasher';
 import StickyBoard from '../components/StickyBoard';
+import GlobalStickyNotes from '../components/GlobalStickyNotes';
 import HiddenTerminal from '../components/HiddenTerminal';
 import SpotlightMode from '../components/SpotlightMode';
 import PhysicsSkillCloud from '../components/PhysicsSkillCloud';
@@ -185,6 +187,7 @@ export default function Home() {
         <section className="content-section process-section"><div className="section-grid"><div className="section-heading reveal"><span className="section-tag">{t.process.tag}</span><h2>{t.process.title}</h2></div><div className="process-grid">{t.process.items.map(([number, title, text]) => <article className="process-card reveal" key={number}><div><span>{number}</span><i /></div><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
 
         <StickyBoard />
+        <GlobalStickyNotes />
         <VisitorBox />
 
         <section id="contact" className="content-section contact-section"><div className="section-grid contact-layout"><div className="contact-copy reveal"><span className="section-tag">{t.contact.tag}</span><h2>{t.contact.title}<br /><em>{t.contact.highlight}</em></h2><p>{t.contact.body}</p><div className="contact-details"><a href={`mailto:${profile?.email || 'haidanglu2004@gmail.com'}`}><Mail /><span><small>{t.contact.emailLabel}</small><b>{profile?.email || 'haidanglu2004@gmail.com'}</b></span></a><div><MapPin /><span><small>{t.contact.locationLabel}</small><b>{displayLocation}</b></span></div></div></div><form className="contact-form-new pixel-window reveal" onSubmit={submit}><div className="window-bar"><span>{t.contact.formTitle}</span><div><i /><i /><i /></div></div><div className="form-grid"><label><span>NAME *</span><input required autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t.contact.name} /></label><label><span>EMAIL *</span><input required autoComplete="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t.contact.email} /></label><label className="form-full"><span>SUBJECT *</span><input required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder={t.contact.subject} /></label><label className="form-full"><span>MESSAGE *</span><textarea required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder={t.contact.message} rows="5" /></label></div>{formStatus !== 'idle' && <p className={`form-status form-status--${formStatus}`} role="status">{t.contact[formStatus]}</p>}<button disabled={formStatus === 'submitting'} className="pixel-button pixel-button--primary form-submit" type="submit">{formStatus === 'submitting' ? t.contact.sending : t.contact.send}<Send size={17} /></button></form></div></section>
