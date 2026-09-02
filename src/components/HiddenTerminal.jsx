@@ -8,6 +8,11 @@ export default function HiddenTerminal() {
     ""
   ]);
   const [input, setInput] = useState('');
+  
+  // Auth state machine: 'idle' | 'username' | 'password'
+  const [authState, setAuthState] = useState('idle');
+  const [tempUser, setTempUser] = useState('');
+
   const inputRef = useRef(null);
   const terminalRef = useRef(null);
 
@@ -38,11 +43,59 @@ export default function HiddenTerminal() {
     }
   }, [isOpen, history]);
 
-  const handleCommand = (e) => {
+  const handleCommand = async (e) => {
     if (e.key === 'Enter') {
       const cmd = input.trim();
-      const newHistory = [...history, `C:\\HAIDANG> ${cmd}`];
       
+      let promptPrefix = "C:\\HAIDANG> ";
+      if (authState === 'username') promptPrefix = "Username: ";
+      if (authState === 'password') promptPrefix = "Password: ";
+
+      const displayCmd = authState === 'password' ? '*'.repeat(cmd.length) : cmd;
+      const newHistory = [...history, `${promptPrefix}${displayCmd}`];
+      
+      setInput('');
+
+      if (authState === 'username') {
+        if (!cmd) {
+          setAuthState('idle');
+          newHistory.push("Login cancelled.", "");
+        } else {
+          setTempUser(cmd);
+          setAuthState('password');
+        }
+        setHistory(newHistory);
+        return;
+      }
+
+      if (authState === 'password') {
+        setAuthState('idle');
+        newHistory.push("Authenticating...");
+        setHistory(newHistory);
+        
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: tempUser, password: cmd })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('portfolio-admin-token', data.token);
+            if (data.admin) localStorage.setItem('portfolio-admin-user', JSON.stringify(data.admin));
+            setHistory(prev => [...prev, "Authentication successful. Redirecting to admin panel..."]);
+            setTimeout(() => {
+              window.location.href = '/admin';
+            }, 1000);
+          } else {
+            setHistory(prev => [...prev, "Access Denied: " + (data.error || "Invalid credentials"), ""]);
+          }
+        } catch(err) {
+           setHistory(prev => [...prev, "Network error.", ""]);
+        }
+        return;
+      }
+
       const args = cmd.toLowerCase().split(' ');
       const command = args[0];
 
@@ -56,9 +109,13 @@ export default function HiddenTerminal() {
             "  about    - Display author information",
             "  skills   - List technical skills",
             "  clear    - Clear the terminal screen",
+            "  login    - Authenticate as system administrator",
             "  exit     - Close the terminal",
             "  sudo     - Execute a command with superuser privileges"
           );
+          break;
+        case 'login':
+          setAuthState('username');
           break;
         case 'about':
           newHistory.push(
@@ -96,13 +153,18 @@ export default function HiddenTerminal() {
           newHistory.push(`'${command}' is not recognized as an internal or external command.`);
       }
       
-      newHistory.push("");
+      if (command !== 'login') {
+         newHistory.push("");
+      }
       setHistory(newHistory);
-      setInput('');
     }
   };
 
   if (!isOpen) return null;
+
+  let currentPrompt = "C:\\HAIDANG>";
+  if (authState === 'username') currentPrompt = "Username:";
+  if (authState === 'password') currentPrompt = "Password:";
 
   return (
     <div style={{
@@ -141,9 +203,10 @@ export default function HiddenTerminal() {
             <div key={i} style={{ whiteSpace: 'pre-wrap' }}>{line}</div>
           ))}
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ marginRight: '8px' }}>C:\HAIDANG&gt;</span>
+            <span style={{ marginRight: '8px' }}>{currentPrompt}</span>
             <input 
               ref={inputRef}
+              type={authState === 'password' ? 'password' : 'text'}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleCommand}

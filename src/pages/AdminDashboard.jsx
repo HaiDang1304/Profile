@@ -14,16 +14,15 @@ function Field({ label, children, wide = false }) {
   return <label className={wide ? 'admin-field admin-field--wide' : 'admin-field'}><span>{label}</span>{children}</label>;
 }
 
-function Login({ onLogin }) {
-  const [values, setValues] = useState({ username: 'admin.dev', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const submit = async (event) => {
-    event.preventDefault(); setLoading(true); setError('');
-    try { const data = await apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(values) }); onLogin(data); }
-    catch (err) { setError(err.message); } finally { setLoading(false); }
-  };
-  return <main className="admin-login"><form onSubmit={submit} className="admin-login__window"><div className="admin-window-bar"><span>ADMIN_LOGIN.EXE</span><i /><i /><i /></div><div className="admin-login__logo">HD</div><h1>CONTROL CENTER</h1><p>Đăng nhập để quản lý nội dung portfolio.</p><Field label="TÀI KHOẢN"><input autoFocus required value={values.username} onChange={(e) => setValues({ ...values, username: e.target.value })} /></Field><Field label="MẬT KHẨU"><input required type="password" value={values.password} onChange={(e) => setValues({ ...values, password: e.target.value })} /></Field>{error && <div className="admin-alert admin-alert--error">{error}</div>}<button className="admin-primary" disabled={loading}>{loading ? 'ĐANG KẾT NỐI...' : 'ĐĂNG NHẬP →'}</button><a href="/">← Trở về portfolio</a></form></main>;
+function Login() {
+  return (
+    <main className="admin-login" style={{ backgroundColor: '#000', color: '#10b981', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'monospace', textAlign: 'center' }}>
+      <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: '#ef4444' }}>ACCESS DENIED</h1>
+      <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>ADMIN PORTAL IS LOCKED.</p>
+      <p style={{ fontSize: '1rem', color: '#888' }}>Please return to the home page, open the terminal (`~`), and type `login` to authenticate.</p>
+      <a href="/" style={{ marginTop: '2rem', padding: '10px 20px', border: '1px solid #10b981', color: '#10b981', textDecoration: 'none', borderRadius: '4px' }}>&lt; Return to Home</a>
+    </main>
+  );
 }
 
 export default function AdminDashboard() {
