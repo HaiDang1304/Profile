@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+require('express-async-errors');
 const cors = require('cors');
 const apiRoutes = require('./routes/api');
 const { initializeDatabase } = require('./database');
@@ -14,7 +15,7 @@ app.use('/api', apiRoutes);
 
 app.use((error, _req, res, _next) => {
   console.error(error);
-  res.status(500).json({ error: 'Đã xảy ra lỗi phía máy chủ.' });
+  res.status(500).json({ error: error.message || 'Server error', stack: error.stack, env: process.env.DB_HOST });
 });
 
 initializeDatabase().catch((error) => console.error('DB Init Error:', error.message));
