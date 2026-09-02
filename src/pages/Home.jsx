@@ -11,7 +11,6 @@ import WelcomeModal from '../components/WelcomeModal';
 import GlobalStickyNotes from '../components/GlobalStickyNotes';
 import HiddenTerminal from '../components/HiddenTerminal';
 import SpotlightMode from '../components/SpotlightMode';
-import PhysicsSkillCloud from '../components/PhysicsSkillCloud';
 
 const copy = {
   vi: {
@@ -183,7 +182,7 @@ export default function Home() {
 
         <section id="blog" className="content-section blog-section"><div className="section-grid"><div className="section-heading section-heading--row reveal"><div><span className="section-tag">{t.blog.tag}</span><h2>{t.blog.title}</h2></div><p>{t.blog.subtitle}</p></div>{content.posts.length ? <div className="post-grid">{content.posts.map((post, index) => <article className="post-card reveal" key={post.id}><div className="post-card__meta"><span>{String(index + 1).padStart(2, '0')}</span><time>{new Date(post.created_at).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US')}</time></div>{post.image_url && <img src={post.image_url} alt="" />}<h3>{post.title}</h3><p>{post[lang === 'vi' ? 'excerpt_vi' : 'excerpt_en']}</p><details><summary>{t.blog.read} <ArrowDownRight size={15} /></summary><div>{post[lang === 'vi' ? 'content_vi' : 'content_en']}</div></details></article>)}</div> : <div className="blog-empty reveal">{t.blog.empty}</div>}</div></section>
 
-        <section id="stack" className="content-section stack-section"><div className="section-grid"><div className="section-heading section-heading--center reveal"><span className="section-tag">{t.stack.tag}</span><h2>{t.stack.title}</h2><p>{t.stack.subtitle}</p></div><div className="stack-grid">{t.stack.groups.map(([group, items], groupIndex) => <article className="stack-card reveal" key={group}><div className="stack-card__top"><span>0{groupIndex + 1}</span><h3>{group}</h3></div><div>{items.map((item) => <span className="stack-chip" key={item}><i>{item.slice(0, 2).toUpperCase()}</i>{item}</span>)}</div></article>)}</div><PhysicsSkillCloud groups={t.stack.groups} /></div></section>
+        <section id="stack" className="content-section stack-section"><div className="section-grid"><div className="section-heading section-heading--center reveal"><span className="section-tag">{t.stack.tag}</span><h2>{t.stack.title}</h2><p>{t.stack.subtitle}</p></div><div className="stack-grid">{t.stack.groups.map(([group, items], groupIndex) => <article className="stack-card reveal" key={group}><div className="stack-card__top"><span>0{groupIndex + 1}</span><h3>{group}</h3></div><div>{items.map((item) => <span className="stack-chip" key={item}><i>{item.slice(0, 2).toUpperCase()}</i>{item}</span>)}</div></article>)}</div></div></section>
         <section className="content-section process-section"><div className="section-grid"><div className="section-heading reveal"><span className="section-tag">{t.process.tag}</span><h2>{t.process.title}</h2></div><div className="process-grid">{t.process.items.map(([number, title, text]) => <article className="process-card reveal" key={number}><div><span>{number}</span><i /></div><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
 
         
