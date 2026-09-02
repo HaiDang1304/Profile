@@ -1,3 +1,5 @@
+import '../styles/hacker.css';
+import HackerManager from '../components/HackerManager';
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowDownRight, ArrowUpRight, BriefcaseBusiness, Code2, Globe2, Mail, MapPin,
@@ -161,6 +163,7 @@ export default function Home() {
 
   return (
     <div className="portfolio-shell">
+        <HackerManager />
       <a className="skip-link" href="#home">Skip to content</a><div className="pixel-decor" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
               <WelcomeModal />
         <header className="site-header"><nav className="nav-wrap" aria-label="Primary navigation">

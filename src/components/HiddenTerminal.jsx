@@ -13,12 +13,15 @@ export default function HiddenTerminal() {
   const [authState, setAuthState] = useState('idle');
   const [tempUser, setTempUser] = useState('');
 
+  // Hacker Minigame state
+  const [hackerScenario, setHackerScenario] = useState(null);
+  const [hackerStep, setHackerStep] = useState(0);
+
   const inputRef = useRef(null);
   const terminalRef = useRef(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Toggle on ~ (tilde) or backtick
       if (e.key === '`' || e.key === '~') {
         e.preventDefault();
         setIsOpen(prev => !prev);
@@ -26,11 +29,37 @@ export default function HiddenTerminal() {
     };
     const handleToggleEvent = () => setIsOpen(prev => !prev);
     
+    const onHackerStart = (e) => {
+      setHackerScenario(e.detail);
+      setHackerStep(0);
+      setIsOpen(true);
+      setHistory(prev => [
+        ...prev,
+        "",
+        "==========================================",
+        "!!! SYSTEM COMPROMISED !!!",
+        "EMERGENCY PROTOCOL ACTIVATED.",
+        "Waiting for counter-measure commands...",
+        "==========================================",
+        ""
+      ]);
+    };
+
+    const onHackerFail = () => {
+      setHackerScenario(null);
+      setIsOpen(false);
+    };
+    
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('toggleTerminal', handleToggleEvent);
+    window.addEventListener('hacker-event-start', onHackerStart);
+    window.addEventListener('hacker-event-fail', onHackerFail);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('toggleTerminal', handleToggleEvent);
+      window.removeEventListener('hacker-event-start', onHackerStart);
+      window.removeEventListener('hacker-event-fail', onHackerFail);
     };
   }, []);
 
@@ -47,7 +76,7 @@ export default function HiddenTerminal() {
     if (e.key === 'Enter') {
       const cmd = input.trim();
       
-      let promptPrefix = "C:\\HAIDANG> ";
+      let promptPrefix = hackerScenario ? "root@compromised:~# " : "C:\\HAIDANG> ";
       if (authState === 'username') promptPrefix = "Username: ";
       if (authState === 'password') promptPrefix = "Password: ";
 
@@ -55,6 +84,30 @@ export default function HiddenTerminal() {
       const newHistory = [...history, `${promptPrefix}${displayCmd}`];
       
       setInput('');
+
+      // HACKER MODE INTERCEPT
+      if (hackerScenario) {
+        if (!cmd) {
+          setHistory(newHistory);
+          return;
+        }
+        const expected = hackerScenario.sequence[hackerStep].expected;
+        if (cmd.toLowerCase() === expected.toLowerCase()) {
+          newHistory.push(hackerScenario.sequence[hackerStep].output);
+          const nextStep = hackerStep + 1;
+          setHackerStep(nextStep);
+          if (nextStep >= hackerScenario.sequence.length) {
+            newHistory.push("", "ALL THREATS NEUTRALIZED.");
+            window.dispatchEvent(new CustomEvent('hacker-event-victory'));
+            setHackerScenario(null);
+            setTimeout(() => setIsOpen(false), 4000);
+          }
+        } else {
+          newHistory.push(`Command unrecognized or incorrect sequence. Expected counter-measure: '${expected}'`);
+        }
+        setHistory(newHistory);
+        return;
+      }
 
       if (authState === 'username') {
         if (!cmd) {
@@ -162,9 +215,11 @@ export default function HiddenTerminal() {
 
   if (!isOpen) return null;
 
-  let currentPrompt = "C:\\HAIDANG>";
+  let currentPrompt = hackerScenario ? "root@compromised:~# " : "C:\\HAIDANG>";
   if (authState === 'username') currentPrompt = "Username:";
   if (authState === 'password') currentPrompt = "Password:";
+
+  const terminalColor = hackerScenario ? '#ef4444' : '#10b981'; // Red when hacked, green normally
 
   return (
     <div style={{
@@ -174,15 +229,18 @@ export default function HiddenTerminal() {
     }}>
       <div style={{
         width: '80%', maxWidth: '700px', height: '400px',
-        backgroundColor: '#000', border: '2px solid #333', borderRadius: '8px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px #444',
-        display: 'flex', flexDirection: 'column', overflow: 'hidden'
+        backgroundColor: '#000', border: hackerScenario ? '2px solid #ef4444' : '2px solid #333', borderRadius: '8px',
+        boxShadow: hackerScenario ? '0 10px 50px rgba(239, 68, 68, 0.4), 0 0 0 1px #ef4444' : '0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px #444',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        animation: hackerScenario ? 'hacker-shake-anim 0.5s infinite' : 'none'
       }}>
         <div style={{
-          backgroundColor: '#222', padding: '8px 15px', display: 'flex', justifyContent: 'space-between',
-          alignItems: 'center', borderBottom: '2px solid #333'
+          backgroundColor: hackerScenario ? '#450a0a' : '#222', padding: '8px 15px', display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', borderBottom: hackerScenario ? '2px solid #ef4444' : '2px solid #333'
         }}>
-          <span style={{ color: '#ccc', fontFamily: 'monospace', fontSize: '0.8rem' }}>C:\Windows\system32\cmd.exe</span>
+          <span style={{ color: hackerScenario ? '#ef4444' : '#ccc', fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: hackerScenario ? 'bold' : 'normal' }}>
+            {hackerScenario ? 'EMERGENCY_OVERRIDE_TERMINAL' : 'C:\\Windows\\system32\\cmd.exe'}
+          </span>
           <button onClick={() => setIsOpen(false)} style={{
             background: '#ef4444', color: '#fff', border: 'none', width: '20px', height: '20px',
             borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -194,7 +252,7 @@ export default function HiddenTerminal() {
           ref={terminalRef}
           onClick={() => inputRef.current?.focus()}
           style={{
-            flex: 1, padding: '15px', backgroundColor: '#000', color: '#10b981', // Matrix green
+            flex: 1, padding: '15px', backgroundColor: '#000', color: terminalColor,
             fontFamily: 'monospace', fontSize: '1rem', overflowY: 'auto',
             lineHeight: '1.5'
           }}
@@ -212,7 +270,7 @@ export default function HiddenTerminal() {
               onKeyDown={handleCommand}
               autoFocus
               style={{
-                background: 'transparent', border: 'none', color: '#10b981',
+                background: 'transparent', border: 'none', color: terminalColor,
                 fontFamily: 'monospace', fontSize: '1rem', flex: 1, outline: 'none'
               }}
             />
