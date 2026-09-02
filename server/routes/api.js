@@ -1,59 +1,145 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { pool } = require('../database');
+const { requireAdmin } = require('../middleware/auth');
+
 const router = express.Router();
-const Profile = require('../models/Profile');
-const Message = require('../models/Message');
+const asBoolean = (value) => value === true || value === 1 || value === '1';
+const asTags = (tags) => JSON.stringify(Array.isArray(tags) ? tags : String(tags || '').split(',').map((tag) => tag.trim()).filter(Boolean));
+const slugify = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const parseProject = (row) => ({ ...row, tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags || [] });
 
-// Ensure a profile document exists
-async function getOrCreateProfile() {
-  let profile = await Profile.findOne({ key: 'main' });
-  if (!profile) {
-    profile = new Profile({ key: 'main', visits: 0 });
-    await profile.save();
-  }
-  return profile;
-}
-
-router.get('/profile', async (req, res) => {
-  try {
-    const profile = await getOrCreateProfile();
-    res.json(profile);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+router.get('/health', async (_req, res) => {
+  await pool.query('SELECT 1');
+  res.json({ status: 'ok', database: process.env.DB_NAME || 'haidang_portfolio' });
 });
 
-router.post('/profile/visit', async (req, res) => {
-  try {
-    const profile = await getOrCreateProfile();
-    profile.visits = (profile.visits || 0) + 1;
-    await profile.save();
-    res.json({ visits: profile.visits });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+router.post('/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  const [[admin]] = await pool.query('SELECT * FROM admins WHERE username=?', [username]);
+  if (!admin || !(await bcrypt.compare(String(password || ''), admin.password_hash))) return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng.' });
+  const token = jwt.sign({ id: admin.id, username: admin.username }, process.env.JWT_SECRET || 'local-xampp-development-secret', { expiresIn: '8h' });
+  return res.json({ token, admin: { id: admin.id, username: admin.username } });
 });
 
-router.get('/messages', async (req, res) => {
-  try {
-    const messages = await Message.find().sort({ createdAt: -1 }).limit(200);
-    res.json(messages);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+router.get('/profile', async (_req, res) => {
+  const [[profile]] = await pool.query('SELECT * FROM profile WHERE id=1');
+  res.json(profile);
+});
+
+router.put('/admin/profile', requireAdmin, async (req, res) => {
+  const p = req.body;
+  await pool.query(`UPDATE profile SET name_vi=?,name_en=?,role=?,bio_vi=?,bio_en=?,avatar_url=?,email=?,location_vi=?,location_en=?,github=?,linkedin=?,facebook=?,availability=? WHERE id=1`,
+    [p.name_vi, p.name_en, p.role, p.bio_vi, p.bio_en, p.avatar_url, p.email, p.location_vi, p.location_en, p.github, p.linkedin, p.facebook, asBoolean(p.availability)]);
+  const [[profile]] = await pool.query('SELECT * FROM profile WHERE id=1');
+  res.json(profile);
+});
+
+router.get('/projects', async (_req, res) => {
+  const [rows] = await pool.query('SELECT * FROM projects WHERE published=1 ORDER BY sort_order,created_at DESC');
+  res.json(rows.map(parseProject));
+});
+
+router.get('/admin/projects', requireAdmin, async (_req, res) => {
+  const [rows] = await pool.query('SELECT * FROM projects ORDER BY sort_order,created_at DESC');
+  res.json(rows.map(parseProject));
+});
+
+router.post('/admin/projects', requireAdmin, async (req, res) => {
+  const p = req.body;
+  const [result] = await pool.query(`INSERT INTO projects (title,category,description_vi,description_en,tags,project_url,source_url,image_url,featured,published,sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+    [p.title, p.category, p.description_vi, p.description_en, asTags(p.tags), p.project_url || '', p.source_url || '', p.image_url || '', asBoolean(p.featured), asBoolean(p.published), Number(p.sort_order || 0)]);
+  const [[project]] = await pool.query('SELECT * FROM projects WHERE id=?', [result.insertId]);
+  res.status(201).json(parseProject(project));
+});
+
+router.put('/admin/projects/:id', requireAdmin, async (req, res) => {
+  const p = req.body;
+  await pool.query(`UPDATE projects SET title=?,category=?,description_vi=?,description_en=?,tags=?,project_url=?,source_url=?,image_url=?,featured=?,published=?,sort_order=? WHERE id=?`,
+    [p.title, p.category, p.description_vi, p.description_en, asTags(p.tags), p.project_url || '', p.source_url || '', p.image_url || '', asBoolean(p.featured), asBoolean(p.published), Number(p.sort_order || 0), req.params.id]);
+  const [[project]] = await pool.query('SELECT * FROM projects WHERE id=?', [req.params.id]);
+  res.json(parseProject(project));
+});
+
+router.delete('/admin/projects/:id', requireAdmin, async (req, res) => {
+  await pool.query('DELETE FROM projects WHERE id=?', [req.params.id]);
+  res.status(204).end();
+});
+
+router.get('/posts', async (_req, res) => {
+  const [rows] = await pool.query('SELECT * FROM posts WHERE published=1 ORDER BY created_at DESC');
+  res.json(rows);
+});
+
+router.get('/admin/posts', requireAdmin, async (_req, res) => {
+  const [rows] = await pool.query('SELECT * FROM posts ORDER BY created_at DESC');
+  res.json(rows);
+});
+
+router.post('/admin/posts', requireAdmin, async (req, res) => {
+  const p = req.body;
+  const [result] = await pool.query(`INSERT INTO posts (title,slug,excerpt_vi,excerpt_en,content_vi,content_en,image_url,published) VALUES (?,?,?,?,?,?,?,?)`,
+    [p.title, slugify(p.slug || p.title), p.excerpt_vi, p.excerpt_en, p.content_vi, p.content_en, p.image_url || '', asBoolean(p.published)]);
+  const [[post]] = await pool.query('SELECT * FROM posts WHERE id=?', [result.insertId]);
+  res.status(201).json(post);
+});
+
+router.put('/admin/posts/:id', requireAdmin, async (req, res) => {
+  const p = req.body;
+  await pool.query(`UPDATE posts SET title=?,slug=?,excerpt_vi=?,excerpt_en=?,content_vi=?,content_en=?,image_url=?,published=? WHERE id=?`,
+    [p.title, slugify(p.slug || p.title), p.excerpt_vi, p.excerpt_en, p.content_vi, p.content_en, p.image_url || '', asBoolean(p.published), req.params.id]);
+  const [[post]] = await pool.query('SELECT * FROM posts WHERE id=?', [req.params.id]);
+  res.json(post);
+});
+
+router.delete('/admin/posts/:id', requireAdmin, async (req, res) => {
+  await pool.query('DELETE FROM posts WHERE id=?', [req.params.id]);
+  res.status(204).end();
 });
 
 router.post('/messages', async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
-    if (!name || !message) {
-      return res.status(400).json({ error: 'name and message are required' });
-    }
+  const { name, email, subject, message } = req.body;
+  if (![name, email, subject, message].every((value) => String(value || '').trim())) return res.status(400).json({ error: 'Vui lòng điền đủ thông tin.' });
+  const [result] = await pool.query('INSERT INTO messages (name,email,subject,message) VALUES (?,?,?,?)', [String(name).trim(), String(email).trim(), String(subject).trim(), String(message).trim()]);
+  return res.status(201).json({ id: result.insertId, message: 'Đã nhận tin nhắn.' });
+});
 
-    const saved = await Message.create({ name, email, message });
-    res.status(201).json(saved);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+router.get('/admin/messages', requireAdmin, async (_req, res) => {
+  const [rows] = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
+  res.json(rows);
+});
+
+router.patch('/admin/messages/:id/read', requireAdmin, async (req, res) => {
+  await pool.query('UPDATE messages SET is_read=? WHERE id=?', [asBoolean(req.body.is_read), req.params.id]);
+  res.json({ id: Number(req.params.id), is_read: asBoolean(req.body.is_read) });
+});
+
+router.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
+  await pool.query('DELETE FROM messages WHERE id=?', [req.params.id]);
+  res.status(204).end();
+});
+
+router.get('/admin/stats', requireAdmin, async (_req, res) => {
+  const [projectRows] = await pool.query('SELECT COUNT(*) total FROM projects');
+  const [postRows] = await pool.query('SELECT COUNT(*) total FROM posts');
+  const [messageRows] = await pool.query('SELECT COUNT(*) total FROM messages');
+  const [unreadRows] = await pool.query('SELECT COUNT(*) total FROM messages WHERE is_read=0');
+  res.json({ projects: projectRows[0].total, posts: postRows[0].total, messages: messageRows[0].total, unread: unreadRows[0].total });
+});
+
+router.post('/visitors', async (req, res) => {
+  const { name } = req.body;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Missing name' });
+  const [result] = await pool.query('INSERT INTO visitors (ip, name) VALUES (?,?)', [ip, String(name).trim()]);
+  const [[visitor]] = await pool.query('SELECT * FROM visitors WHERE id=?', [result.insertId]);
+  return res.status(201).json(visitor);
+});
+
+router.get('/visitors', async (_req, res) => {
+  const [rows] = await pool.query('SELECT id, name, ip, created_at FROM visitors ORDER BY created_at DESC LIMIT 50');
+  res.json(rows);
 });
 
 module.exports = router;
