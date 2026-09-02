@@ -17,10 +17,8 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ error: 'Đã xảy ra lỗi phía máy chủ.' });
 });
 
-initializeDatabase()
-  .then(() => app.listen(port, () => console.log(`Portfolio API: http://localhost:${port}/api`)))
-  .catch((error) => {
-    console.error('Không thể kết nối MySQL:', error.message);
-    console.error('Hãy bật MySQL trong XAMPP và kiểm tra cấu hình server/.env.');
-    process.exit(1);
-  });
+initializeDatabase().catch((error) => console.error('DB Init Error:', error.message));
+if (!process.env.VERCEL) {
+  app.listen(port, () => console.log(`Portfolio API: http://localhost:${port}/api`));
+}
+module.exports = app;
