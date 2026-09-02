@@ -43,8 +43,29 @@ async function initializeDatabase() {
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ip VARCHAR(60) NOT NULL,
     name VARCHAR(120) NOT NULL,
+    color VARCHAR(20) DEFAULT '#ffffff',
+    accessory VARCHAR(50) DEFAULT 'none',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+  
+  // Try to alter visitors if it already exists (to add color, accessory)
+  try {
+    await pool.query(`ALTER TABLE visitors ADD COLUMN color VARCHAR(20) DEFAULT '#ffffff', ADD COLUMN accessory VARCHAR(50) DEFAULT 'none'`);
+  } catch(e) { /* ignore if already exists */ }
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS reactions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    project_id INT UNSIGNED NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    count INT UNSIGNED DEFAULT 0,
+    UNIQUE KEY project_reaction (project_id, type)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS global_stats (
+    stat_key VARCHAR(100) PRIMARY KEY,
+    stat_value INT UNSIGNED DEFAULT 0
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
 
   await pool.query(`INSERT IGNORE INTO profile
     (id,name_vi,name_en,role,bio_vi,bio_en,avatar_url,email,location_vi,location_en,github,linkedin,facebook) VALUES

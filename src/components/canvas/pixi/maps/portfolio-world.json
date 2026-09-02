@@ -1,0 +1,261 @@
+{
+  "compressionlevel": -1,
+  "height": 150,
+  "infinite": true,
+  "layers": [
+    {
+      "id": 1,
+      "name": "scene-hero",
+      "type": "group",
+      "offsetx": 0,
+      "offsety": 180,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "hero" },
+        { "name": "skyTop", "type": "color", "value": "#5b7bb6" },
+        { "name": "skyBottom", "type": "color", "value": "#f6c68d" },
+        { "name": "water", "type": "color", "value": "#396b78" },
+        { "name": "land", "type": "color", "value": "#285844" },
+        { "name": "accent", "type": "color", "value": "#ffe39a" }
+      ],
+      "layers": [
+        {
+          "id": 2,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 101, "name": "Hero stilt house", "class": "house", "x": 122, "y": 42, "width": 132, "height": 92, "properties": [{ "name": "lit", "type": "bool", "value": false }] },
+            { "id": 102, "name": "Coconut palm", "class": "palm", "x": 73, "y": 63, "width": 42, "height": 94 },
+            { "id": 103, "name": "Bamboo cluster", "class": "bamboo", "x": 274, "y": 62, "width": 35, "height": 82 },
+            { "id": 104, "name": "Timber bridge", "class": "bridge", "x": 46, "y": 107, "width": 84, "height": 27 },
+            { "id": 105, "name": "Lotus pond", "class": "lotusPatch", "x": 62, "y": 126, "width": 250, "height": 69 }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 111, "name": "Developer", "class": "character", "x": 182, "y": 126, "properties": [{ "name": "variant", "type": "string", "value": "developer" }, { "name": "routeWidth", "type": "float", "value": 67 }] },
+            { "id": 112, "name": "Duck one", "class": "duck", "x": 128, "y": 159, "properties": [{ "name": "routeWidth", "type": "float", "value": 128 }] },
+            { "id": 113, "name": "Duck two", "class": "duck", "x": 169, "y": 179, "properties": [{ "name": "routeWidth", "type": "float", "value": 91 }, { "name": "phase", "type": "float", "value": 0.45 }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "scene-about",
+      "type": "group",
+      "offsetx": 220,
+      "offsety": 540,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "about" },
+        { "name": "skyTop", "type": "color", "value": "#5d9ebe" },
+        { "name": "skyBottom", "type": "color", "value": "#d4d8a5" },
+        { "name": "water", "type": "color", "value": "#438985" },
+        { "name": "land", "type": "color", "value": "#2f6942" },
+        { "name": "accent", "type": "color", "value": "#fff0a8" }
+      ],
+      "layers": [
+        {
+          "id": 11,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 201, "name": "Orchard", "class": "orchard", "x": -300, "y": 37, "width": 238, "height": 96 },
+            { "id": 202, "name": "Monkey bridge", "class": "bridge", "x": -276, "y": 92, "width": 135, "height": 33 },
+            { "id": 203, "name": "Palm left", "class": "palm", "x": -315, "y": 55, "width": 45, "height": 101 },
+            { "id": 204, "name": "Palm right", "class": "palm", "x": -83, "y": 69, "width": 39, "height": 86 }
+          ]
+        },
+        {
+          "id": 12,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 211, "name": "Farmer", "class": "character", "x": -122, "y": 127, "properties": [{ "name": "variant", "type": "string", "value": "farmer" }, { "name": "routeWidth", "type": "float", "value": 69 }] },
+            { "id": 212, "name": "Water buffalo", "class": "buffalo", "x": -260, "y": 117, "properties": [{ "name": "routeWidth", "type": "float", "value": 117 }] },
+            { "id": 213, "name": "Chicken flock", "class": "chicken", "x": -181, "y": 157, "properties": [{ "name": "routeWidth", "type": "float", "value": 105 }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "scene-projects",
+      "type": "group",
+      "offsetx": -60,
+      "offsety": 900,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "projects" },
+        { "name": "skyTop", "type": "color", "value": "#4798bf" },
+        { "name": "skyBottom", "type": "color", "value": "#b8d8ca" },
+        { "name": "water", "type": "color", "value": "#2f7e91" },
+        { "name": "land", "type": "color", "value": "#246047" },
+        { "name": "accent", "type": "color", "value": "#fff4bd" }
+      ],
+      "layers": [
+        {
+          "id": 21,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 301, "name": "Trading dock", "class": "dock", "x": 46, "y": 74, "width": 260, "height": 78 },
+            { "id": 302, "name": "Cargo sampan", "class": "boat", "x": 105, "y": 130, "width": 143, "height": 49, "properties": [{ "name": "scale", "type": "float", "value": 1.15 }] },
+            { "id": 303, "name": "Small sampan", "class": "boat", "x": 43, "y": 176, "width": 96, "height": 34, "properties": [{ "name": "scale", "type": "float", "value": 0.72 }, { "name": "phase", "type": "float", "value": 0.7 }] },
+            { "id": 304, "name": "Dock palm", "class": "palm", "x": 278, "y": 62, "width": 42, "height": 96 }
+          ]
+        },
+        {
+          "id": 22,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 311, "name": "Porter", "class": "character", "x": 238, "y": 127, "properties": [{ "name": "variant", "type": "string", "value": "porter" }, { "name": "routeWidth", "type": "float", "value": 58 }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "scene-technology",
+      "type": "group",
+      "offsetx": 200,
+      "offsety": 1260,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "technology" },
+        { "name": "skyTop", "type": "color", "value": "#477ba0" },
+        { "name": "skyBottom", "type": "color", "value": "#d19b72" },
+        { "name": "water", "type": "color", "value": "#3c6872" },
+        { "name": "land", "type": "color", "value": "#31573d" },
+        { "name": "accent", "type": "color", "value": "#ffd87d" }
+      ],
+      "layers": [
+        {
+          "id": 31,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 401, "name": "Workshop", "class": "workshop", "x": -308, "y": 31, "width": 248, "height": 131 },
+            { "id": 402, "name": "Telemetry screen", "class": "monitor", "x": -191, "y": 84, "width": 71, "height": 48 },
+            { "id": 403, "name": "Wind turbine", "class": "turbine", "x": -91, "y": 59, "width": 57, "height": 84 },
+            { "id": 404, "name": "Workshop bamboo", "class": "bamboo", "x": -320, "y": 76, "width": 35, "height": 75 }
+          ]
+        },
+        {
+          "id": 32,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 411, "name": "Maker", "class": "character", "x": -211, "y": 135, "properties": [{ "name": "variant", "type": "string", "value": "maker" }, { "name": "routeWidth", "type": "float", "value": 66 }] },
+            { "id": 412, "name": "Workshop dog", "class": "dog", "x": -112, "y": 153, "properties": [{ "name": "routeWidth", "type": "float", "value": 81 }] },
+            { "id": 413, "name": "Workshop cat", "class": "cat", "x": -49, "y": 123 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "name": "scene-playground",
+      "type": "group",
+      "offsetx": -40,
+      "offsety": 1620,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "playground" },
+        { "name": "skyTop", "type": "color", "value": "#292f69" },
+        { "name": "skyBottom", "type": "color", "value": "#cf6f68" },
+        { "name": "water", "type": "color", "value": "#3b506b" },
+        { "name": "land", "type": "color", "value": "#263d36" },
+        { "name": "accent", "type": "color", "value": "#ffc36a" }
+      ],
+      "layers": [
+        {
+          "id": 41,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 501, "name": "Festival house", "class": "house", "x": 205, "y": 67, "width": 99, "height": 76, "properties": [{ "name": "lit", "type": "bool", "value": true }] },
+            { "id": 502, "name": "Lantern line", "class": "lanternLine", "x": 40, "y": 60, "width": 270, "height": 50 },
+            { "id": 503, "name": "Kite", "class": "kite", "x": 142, "y": -96, "width": 36, "height": 76 },
+            { "id": 504, "name": "Festival palm", "class": "palm", "x": 38, "y": 71, "width": 43, "height": 91 }
+          ]
+        },
+        {
+          "id": 42,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 511, "name": "Child", "class": "character", "x": 197, "y": 132, "properties": [{ "name": "variant", "type": "string", "value": "child" }, { "name": "routeWidth", "type": "float", "value": 85 }] },
+            { "id": 512, "name": "Running dog", "class": "dog", "x": 108, "y": 154, "properties": [{ "name": "routeWidth", "type": "float", "value": 156 }, { "name": "speed", "type": "float", "value": 1.45 }] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "name": "scene-contact",
+      "type": "group",
+      "offsetx": 160,
+      "offsety": 1980,
+      "properties": [
+        { "name": "sceneId", "type": "string", "value": "contact" },
+        { "name": "skyTop", "type": "color", "value": "#07132d" },
+        { "name": "skyBottom", "type": "color", "value": "#29425d" },
+        { "name": "water", "type": "color", "value": "#173b50" },
+        { "name": "land", "type": "color", "value": "#12312f" },
+        { "name": "accent", "type": "color", "value": "#f7e6aa" }
+      ],
+      "layers": [
+        {
+          "id": 51,
+          "name": "landmarks",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 601, "name": "Night house", "class": "house", "x": -309, "y": 55, "width": 124, "height": 91, "properties": [{ "name": "lit", "type": "bool", "value": true }] },
+            { "id": 602, "name": "Cooking fire", "class": "firepit", "x": -151, "y": 119, "width": 49, "height": 41 },
+            { "id": 603, "name": "Night palm", "class": "palm", "x": -81, "y": 66, "width": 40, "height": 88 },
+            { "id": 604, "name": "Moon reflection", "class": "moonReflection", "x": -270, "y": 141, "width": 96, "height": 62 }
+          ]
+        },
+        {
+          "id": 52,
+          "name": "entities",
+          "type": "objectgroup",
+          "draworder": "topdown",
+          "objects": [
+            { "id": 611, "name": "Neighbor", "class": "character", "x": -88, "y": 136, "properties": [{ "name": "variant", "type": "string", "value": "neighbor" }, { "name": "routeWidth", "type": "float", "value": 55 }] },
+            { "id": 612, "name": "Night cat", "class": "cat", "x": -172, "y": 151 }
+          ]
+        }
+      ]
+    }
+  ],
+  "nextlayerid": 53,
+  "nextobjectid": 613,
+  "orientation": "orthogonal",
+  "properties": [
+    { "name": "virtualWidth", "type": "int", "value": 640 },
+    { "name": "virtualHeight", "type": "int", "value": 360 },
+    { "name": "atlas", "type": "file", "value": "../atlas/portfolio-atlas.json" },
+    { "name": "authoringTool", "type": "string", "value": "Tiled Map Editor" }
+  ],
+  "renderorder": "right-down",
+  "tiledversion": "1.12.2",
+  "tileheight": 16,
+  "tilesets": [],
+  "tilewidth": 16,
+  "type": "map",
+  "version": "1.10",
+  "width": 80
+}

@@ -129,21 +129,49 @@ router.get('/admin/stats', requireAdmin, async (_req, res) => {
 });
 
 router.post('/visitors', async (req, res) => {
-  const { name } = req.body;
+  const { name, color, accessory } = req.body;
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'Vui lòng nhập tên' });
   
   const [[existing]] = await pool.query('SELECT id FROM visitors WHERE ip=?', [ip]);
   if (existing) return res.status(429).json({ error: 'Bạn đã điểm danh rồi! (Mỗi thiết bị/IP chỉ được 1 lần)' });
 
-  const [result] = await pool.query('INSERT INTO visitors (ip, name) VALUES (?,?)', [ip, String(name).trim()]);
+  const [result] = await pool.query('INSERT INTO visitors (ip, name, color, accessory) VALUES (?,?,?,?)', [ip, String(name).trim(), String(color || '#ffffff'), String(accessory || 'none')]);
   const [[visitor]] = await pool.query('SELECT * FROM visitors WHERE id=?', [result.insertId]);
   return res.status(201).json(visitor);
 });
 
 router.get('/visitors', async (_req, res) => {
-  const [rows] = await pool.query('SELECT id, name, ip, created_at FROM visitors ORDER BY created_at DESC LIMIT 50');
+  const [rows] = await pool.query('SELECT id, name, ip, color, accessory, created_at FROM visitors ORDER BY created_at DESC LIMIT 50');
   res.json(rows);
+});
+
+// Reactions
+router.get('/reactions', async (_req, res) => {
+  const [rows] = await pool.query('SELECT project_id, type, count FROM reactions');
+  res.json(rows);
+});
+
+router.post('/reactions/:projectId', async (req, res) => {
+  const projectId = Number(req.params.projectId);
+  const { type } = req.body; // 'heart', 'fire', 'rocket'
+  if (!['heart', 'fire', 'rocket'].includes(type)) return res.status(400).json({ error: 'Invalid reaction type' });
+  
+  await pool.query('INSERT INTO reactions (project_id, type, count) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE count = count + 1', [projectId, type]);
+  const [[row]] = await pool.query('SELECT count FROM reactions WHERE project_id=? AND type=?', [projectId, type]);
+  res.json({ project_id: projectId, type, count: row.count });
+});
+
+// Bug Smasher
+router.get('/bugs', async (_req, res) => {
+  const [[row]] = await pool.query("SELECT stat_value FROM global_stats WHERE stat_key='bugs_smashed'");
+  res.json({ bugs_smashed: row ? row.stat_value : 0 });
+});
+
+router.post('/bugs', async (_req, res) => {
+  await pool.query("INSERT INTO global_stats (stat_key, stat_value) VALUES ('bugs_smashed', 1) ON DUPLICATE KEY UPDATE stat_value = stat_value + 1");
+  const [[row]] = await pool.query("SELECT stat_value FROM global_stats WHERE stat_key='bugs_smashed'");
+  res.json({ bugs_smashed: row.stat_value });
 });
 
 module.exports = router;

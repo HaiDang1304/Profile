@@ -5,6 +5,8 @@ import { Send, Users } from 'lucide-react';
 export default function VisitorBox() {
   const [visitors, setVisitors] = useState([]);
   const [name, setName] = useState('');
+  const [color, setColor] = useState('#ff0055');
+  const [accessory, setAccessory] = useState('none');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const canvasRef = useRef(null);
@@ -28,7 +30,7 @@ export default function VisitorBox() {
     setLoading(true);
     setErrorMsg('');
     try {
-      await apiRequest('/visitors', { method: 'POST', body: JSON.stringify({ name }) });
+      await apiRequest('/visitors', { method: 'POST', body: JSON.stringify({ name, color, accessory }) });
       setName('');
       fetchVisitors();
     } catch (err) {
@@ -59,7 +61,8 @@ export default function VisitorBox() {
       vy: (Math.random() - 0.5) * 2,
       targetX: 0,
       targetY: 0,
-      color: `hsl(${(i * 137) % 360}, 70%, 60%)`,
+      color: v.color || `hsl(${(i * 137) % 360}, 70%, 60%)`,
+      accessory: v.accessory || 'none',
       size: 10 + Math.random() * 4,
       bouncePhase: Math.random() * Math.PI * 2,
       history: []
@@ -161,6 +164,20 @@ export default function VisitorBox() {
            ctx.fillRect(p.x + p.size/4 - 2 + eyeOffsetX, p.y + jump - p.size/4, 2, 2);
         }
 
+        // Draw Accessory
+        if (p.accessory === 'hat') {
+           ctx.fillStyle = '#f59e0b'; // yellow hat
+           ctx.fillRect(p.x - p.size/2 - 2, p.y + jump - p.size/2 - 3, p.size + 4, 3);
+           ctx.fillRect(p.x - p.size/4, p.y + jump - p.size/2 - 6, p.size/2, 3);
+        } else if (p.accessory === 'glasses') {
+           ctx.fillStyle = '#111827';
+           ctx.fillRect(p.x - p.size/2 - 1, p.y + jump - p.size/4, p.size + 2, 3);
+        } else if (p.accessory === 'bow') {
+           ctx.fillStyle = '#ec4899';
+           ctx.fillRect(p.x - p.size/4 - 2, p.y + jump - p.size/2 - 2, 3, 3);
+           ctx.fillRect(p.x + p.size/4 - 1, p.y + jump - p.size/2 - 2, 3, 3);
+        }
+
         // Draw Name text
         ctx.font = '10px "Press Start 2P", monospace';
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
@@ -195,6 +212,23 @@ export default function VisitorBox() {
                 <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>TÊN CỦA BẠN *</span>
                 <input required value={name} onChange={e => setName(e.target.value)} placeholder="Nhập tên..." maxLength={15} style={{ background: '#0a0a0a', border: '2px solid #333', color: '#fff', padding: '0.8rem', width: '100%', outline: 'none', fontFamily: 'monospace' }} />
               </label>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <label style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>MÀU SẮC</span>
+                  <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: '100%', height: '36px', padding: '0', border: '2px solid #333', background: '#0a0a0a', cursor: 'pointer' }} />
+                </label>
+                <label style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>PHỤ KIỆN</span>
+                  <select value={accessory} onChange={e => setAccessory(e.target.value)} style={{ width: '100%', height: '36px', padding: '0 0.5rem', border: '2px solid #333', background: '#0a0a0a', color: '#fff', outline: 'none', fontFamily: 'monospace' }}>
+                    <option value="none">Không có</option>
+                    <option value="hat">Mũ rơm</option>
+                    <option value="glasses">Kính râm</option>
+                    <option value="bow">Nơ hồng</option>
+                  </select>
+                </label>
+              </div>
+
               <button disabled={loading} className="pixel-button pixel-button--primary" type="submit" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                 {loading ? 'ĐANG GỬI...' : 'ĐIỂM DANH'} <Send size={16} />
               </button>
