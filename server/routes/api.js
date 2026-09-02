@@ -162,6 +162,18 @@ router.post('/reactions/:projectId', async (req, res) => {
   res.json({ project_id: projectId, type, count: row.count });
 });
 
+// Page Views
+router.get('/pageviews', async (_req, res) => {
+  const [[row]] = await pool.query("SELECT stat_value FROM global_stats WHERE stat_key='page_views'");
+  res.json({ page_views: row ? row.stat_value : 0 });
+});
+
+router.post('/pageviews', async (_req, res) => {
+  await pool.query("INSERT INTO global_stats (stat_key, stat_value) VALUES ('page_views', 1) ON DUPLICATE KEY UPDATE stat_value = stat_value + 1");
+  const [[row]] = await pool.query("SELECT stat_value FROM global_stats WHERE stat_key='page_views'");
+  res.json({ page_views: row.stat_value });
+});
+
 // Bug Smasher
 router.get('/bugs', async (_req, res) => {
   const [[row]] = await pool.query("SELECT stat_value FROM global_stats WHERE stat_key='bugs_smashed'");
