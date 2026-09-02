@@ -24,7 +24,7 @@ export default function SpotlightMode() {
         style={{
           position: 'fixed',
           bottom: '20px',
-          right: '20px',
+          left: '20px',
           zIndex: 9999,
           background: isOn ? '#ef4444' : '#111827',
           color: '#fff',
