@@ -8,6 +8,7 @@ import VisitorBox from '../components/VisitorBox';
 import ProjectReactions from '../components/ProjectReactions';
 import BugSmasher from '../components/BugSmasher';
 import StickyBoard from '../components/StickyBoard';
+import HiddenTerminal from '../components/HiddenTerminal';
 
 const copy = {
   vi: {
@@ -185,6 +186,7 @@ export default function Home() {
 
         <section id="contact" className="content-section contact-section"><div className="section-grid contact-layout"><div className="contact-copy reveal"><span className="section-tag">{t.contact.tag}</span><h2>{t.contact.title}<br /><em>{t.contact.highlight}</em></h2><p>{t.contact.body}</p><div className="contact-details"><a href={`mailto:${profile?.email || 'haidanglu2004@gmail.com'}`}><Mail /><span><small>{t.contact.emailLabel}</small><b>{profile?.email || 'haidanglu2004@gmail.com'}</b></span></a><div><MapPin /><span><small>{t.contact.locationLabel}</small><b>{displayLocation}</b></span></div></div></div><form className="contact-form-new pixel-window reveal" onSubmit={submit}><div className="window-bar"><span>{t.contact.formTitle}</span><div><i /><i /><i /></div></div><div className="form-grid"><label><span>NAME *</span><input required autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t.contact.name} /></label><label><span>EMAIL *</span><input required autoComplete="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder={t.contact.email} /></label><label className="form-full"><span>SUBJECT *</span><input required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder={t.contact.subject} /></label><label className="form-full"><span>MESSAGE *</span><textarea required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder={t.contact.message} rows="5" /></label></div>{formStatus !== 'idle' && <p className={`form-status form-status--${formStatus}`} role="status">{t.contact[formStatus]}</p>}<button disabled={formStatus === 'submitting'} className="pixel-button pixel-button--primary form-submit" type="submit">{formStatus === 'submitting' ? t.contact.sending : t.contact.send}<Send size={17} /></button></form></div></section>
         <BugSmasher />
+        <HiddenTerminal />
       </main>
 
       <footer><div className="section-grid footer-inner"><div className="brand"><span>HD</span><b>HAIDANG.DEV</b></div><p>{t.footer} <i>♥</i> + REACT</p><span>{t.rights}</span><a href="/admin">ADMIN</a><button onClick={() => go('home')}>{t.back} ↑</button></div></footer>
