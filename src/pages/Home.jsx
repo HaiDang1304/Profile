@@ -143,6 +143,10 @@ export default function Home() {
     Promise.all([apiRequest('/profile'), apiRequest('/projects'), apiRequest('/posts')])
       .then(([nextProfile, projects, posts]) => setContent({ profile: nextProfile, projects, posts }))
       .catch(() => { /* Portfolio vẫn hiển thị dữ liệu dự phòng khi API đang tắt. */ });
+      
+    apiRequest('/pageviews', { method: 'POST' })
+      .then(data => setPageViews(data.page_views))
+      .catch(() => {});
   }, []);
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); if (navIds.includes(entry.target.id)) setActive(entry.target.id); } }), { threshold: 0.08, rootMargin: '-8% 0px -8%' });
