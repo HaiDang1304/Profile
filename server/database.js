@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const databaseName = process.env.DB_NAME || 'haidang_portfolio';
 const connectionOptions = {
   host: process.env.DB_HOST || '127.0.0.1', port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || 'root', password: process.env.DB_PASSWORD || '', charset: 'utf8mb4',
+  user: process.env.DB_USER || 'root', password: process.env.DB_PASSWORD || '', charset: 'utf8mb4', ssl: process.env.DB_HOST && process.env.DB_HOST.includes('tidbcloud') ? { rejectUnauthorized: true } : undefined,
 };
 const pool = mysql.createPool({ ...connectionOptions, database: databaseName, waitForConnections: true, connectionLimit: 10, queueLimit: 0 });
 
