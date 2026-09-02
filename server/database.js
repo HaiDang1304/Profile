@@ -66,6 +66,15 @@ async function initializeDatabase() {
     stat_value INT UNSIGNED DEFAULT 0
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
+  await pool.query(`CREATE TABLE IF NOT EXISTS sticky_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    text VARCHAR(255) NOT NULL,
+    color VARCHAR(20) DEFAULT '#ffff88',
+    x INT DEFAULT 0,
+    y INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
 
   await pool.query(`INSERT IGNORE INTO profile
     (id,name_vi,name_en,role,bio_vi,bio_en,avatar_url,email,location_vi,location_en,github,linkedin,facebook) VALUES
