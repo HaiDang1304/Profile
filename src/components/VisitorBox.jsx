@@ -1,46 +1,40 @@
 import { useState, useEffect, useRef } from 'react';
-import { apiRequest } from '../lib/api';
 import { Send, Users } from 'lucide-react';
 
 export default function VisitorBox() {
   const [visitors, setVisitors] = useState([]);
   const [name, setName] = useState('');
-  const [color, setColor] = useState('#ff0055');
-  const [accessory, setAccessory] = useState('none');
+  const [animalId, setAnimalId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const canvasRef = useRef(null);
 
-  const fetchVisitors = async () => {
-    try {
-      const data = await apiRequest('/visitors');
-      setVisitors(data || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const canvasRef = useRef(null);
+  const visitorsRef = useRef([]);
 
   useEffect(() => {
-    fetchVisitors();
+    fetch('/api/visitors')
+      .then(r => r.json())
+      .then(data => {
+        setVisitors(data);
+        visitorsRef.current = data.map(v => {
+          let aId = parseInt(v.accessory);
+          if (isNaN(aId) || aId < 0 || aId > 19) aId = Math.floor(Math.random() * 20); // Fallback for old visitors
+
+          return {
+            ...v,
+            x: Math.random() * 600,
+            y: Math.random() * 400,
+            targetX: Math.random() * 600,
+            targetY: Math.random() * 400,
+            vx: 0,
+            vy: 0,
+            bouncePhase: Math.random() * Math.PI * 2,
+            animalId: aId
+          };
+        });
+      });
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!name.trim() || loading) return;
-    setLoading(true);
-    setErrorMsg('');
-    try {
-      await apiRequest('/visitors', { method: 'POST', body: JSON.stringify({ name, color, accessory }) });
-      setName('');
-      fetchVisitors();
-    } catch (err) {
-      setErrorMsg(err.message || 'Có lỗi xảy ra');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Advanced Animation Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -48,213 +42,252 @@ export default function VisitorBox() {
     let animationId;
     let frame = 0;
     
-    // Behaviors: 0=Bounce, 1=Snake/Chase, 2=Orbit, 3=March
-    let mode = 0;
-    let modeTimer = 0;
-
-    let particles = visitors.map((v, i) => ({
-      id: i,
-      text: v.name,
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      targetX: 0,
-      targetY: 0,
-      color: v.color || `hsl(${(i * 137) % 360}, 70%, 60%)`,
-      accessory: v.accessory || 'none',
-      size: 10 + Math.random() * 4,
-      bouncePhase: Math.random() * Math.PI * 2,
-      history: []
-    }));
+    // Load animal spritesheet
+    const animalImage = new Image();
+    animalImage.src = '/animals.jpg';
 
     const render = () => {
       frame++;
-      modeTimer++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Switch mode every 500 frames (approx 8s)
-      if (modeTimer > 500) {
-        modeTimer = 0;
-        mode = (mode + 1) % 4;
-      }
+      const vList = visitorsRef.current;
 
-      ctx.fillStyle = 'rgba(17, 24, 39, 0.4)'; // Trail effect
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
+      // Group behavior: mode 0 (wander), mode 1 (flock)
+      const mode = Math.floor(frame / 600) % 2;
 
-      particles.forEach((p, i) => {
-        // Record history for snake mode
-        p.history.unshift({ x: p.x, y: p.y });
-        if (p.history.length > 20) p.history.pop();
-
-        if (mode === 0) { // Free Bounce (Chạy tán loạn)
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.x < 20 || p.x > canvas.width - 20) p.vx *= -1;
-          if (p.y < 20 || p.y > canvas.height - 20) p.vy *= -1;
-        } 
-        else if (mode === 1) { // Pacman Chase (Rượt đuổi)
-          if (i === 0) { 
-            // Pacman runs around in a large Lissajous curve
-            p.targetX = cx + Math.sin(frame * 0.02) * (canvas.width * 0.4);
-            p.targetY = cy + Math.sin(frame * 0.03) * (canvas.height * 0.4);
-            p.x += (p.targetX - p.x) * 0.05;
-            p.y += (p.targetY - p.y) * 0.05;
-            p.vx = p.targetX - p.x;
-            p.vy = p.targetY - p.y;
-          } else {
-            // Ghosts follow the history of the one in front of them
-            const leader = particles[i - 1];
-            const targetPos = leader.history[10] || leader; 
-            p.x += (targetPos.x - p.x) * 0.1;
-            p.y += (targetPos.y - p.y) * 0.1;
-            p.vx = targetPos.x - p.x;
-            p.vy = targetPos.y - p.y;
+      vList.forEach((p, i) => {
+        if (mode === 0) { // Wander
+          if (Math.random() < 0.02) {
+            p.targetX = Math.max(20, Math.min(canvas.width - 20, p.x + (Math.random() - 0.5) * 100));
+            p.targetY = Math.max(20, Math.min(canvas.height - 20, p.y + (Math.random() - 0.5) * 100));
+          }
+        } else if (mode === 1) { // Flock towards center slightly
+          if (Math.random() < 0.05) {
+            p.targetX = canvas.width / 2 + (Math.random() - 0.5) * 300;
+            p.targetY = canvas.height / 2 + (Math.random() - 0.5) * 200;
           }
         }
-        else if (mode === 2) { // Orbit (Xếp hàng chạy vòng tròn)
-          const radius = 60 + (i * 20) % 150;
-          const speed = 0.02;
-          const angle = frame * speed + (i * 0.5);
-          p.targetX = cx + Math.cos(angle) * radius;
-          p.targetY = cy + Math.sin(angle) * radius;
-          p.x += (p.targetX - p.x) * 0.08;
-          p.y += (p.targetY - p.y) * 0.08;
-          p.vx = p.targetX - p.x;
-          p.vy = p.targetY - p.y;
-        }
-        else if (mode === 3) { // March in rows (Chạy tới chạy lui)
-          const cols = 6;
-          const row = Math.floor(i / cols);
-          const col = i % cols;
-          // Move left to right and wrap around
-          const speed = 1.5;
-          const marchOffset = (frame * speed + col * 80) % (canvas.width + 100) - 50;
-          
-          p.targetX = marchOffset;
-          p.targetY = 80 + row * 60;
-          
-          p.x += (p.targetX - p.x) * 0.1;
-          p.y += (p.targetY - p.y) * 0.1;
-          p.vx = speed;
-          p.vy = 0;
-        }
 
-        // Draw Pixel Sprite
-        const jump = Math.sin(frame * 0.2 + p.bouncePhase) * 4;
-        ctx.fillStyle = p.color;
+        p.x += (p.targetX - p.x) * 0.02;
+        p.y += (p.targetY - p.y) * 0.02;
+
+        const jump = Math.sin(frame * 0.1 + p.bouncePhase) * 3;
         
-        if (mode === 1 && i === 0) {
-           // Pacman Leader
-           ctx.beginPath();
-           const mouthAngle = 0.2 + Math.abs(Math.sin(frame * 0.3)) * 0.4;
-           const dirAngle = Math.atan2(p.vy, p.vx);
-           ctx.arc(p.x, p.y + jump, p.size + 6, dirAngle + mouthAngle, dirAngle + Math.PI*2 - mouthAngle);
-           ctx.lineTo(p.x, p.y + jump);
-           ctx.fill();
+        // Draw animal sprite
+        if (animalImage.complete && animalImage.naturalWidth > 0) {
+           const cols = 5;
+           const rows = 4;
+           const sWidth = animalImage.naturalWidth / cols;
+           const sHeight = animalImage.naturalHeight / rows;
+           const col = p.animalId % cols;
+           const row = Math.floor(p.animalId / cols);
+           
+           // Make them face direction of movement
+           const isMovingLeft = p.targetX < p.x;
+           
+           ctx.save();
+           const drawX = p.x;
+           const drawY = p.y + jump;
+           
+           if (isMovingLeft) {
+             ctx.translate(drawX, drawY);
+             ctx.scale(-1, 1);
+             ctx.drawImage(animalImage, col * sWidth, row * sHeight, sWidth, sHeight, -20, -20, 40, 40);
+           } else {
+             ctx.translate(drawX, drawY);
+             ctx.drawImage(animalImage, col * sWidth, row * sHeight, sWidth, sHeight, -20, -20, 40, 40);
+           }
+           ctx.restore();
         } else {
-           // Normal Ghost/Block
-           ctx.fillRect(p.x - p.size/2, p.y + jump - p.size/2, p.size, p.size);
-           // Eyes based on movement direction
-           ctx.fillStyle = '#fff';
-           const eyeOffsetX = p.vx > 0 ? 2 : p.vx < 0 ? -2 : 0;
-           ctx.fillRect(p.x - p.size/4 + eyeOffsetX, p.y + jump - p.size/4, 2, 2);
-           ctx.fillRect(p.x + p.size/4 - 2 + eyeOffsetX, p.y + jump - p.size/4, 2, 2);
-        }
-
-        // Draw Accessory
-        if (p.accessory === 'hat') {
-           ctx.fillStyle = '#f59e0b'; // yellow hat
-           ctx.fillRect(p.x - p.size/2 - 2, p.y + jump - p.size/2 - 3, p.size + 4, 3);
-           ctx.fillRect(p.x - p.size/4, p.y + jump - p.size/2 - 6, p.size/2, 3);
-        } else if (p.accessory === 'glasses') {
-           ctx.fillStyle = '#111827';
-           ctx.fillRect(p.x - p.size/2 - 1, p.y + jump - p.size/4, p.size + 2, 3);
-        } else if (p.accessory === 'bow') {
-           ctx.fillStyle = '#ec4899';
-           ctx.fillRect(p.x - p.size/4 - 2, p.y + jump - p.size/2 - 2, 3, 3);
-           ctx.fillRect(p.x + p.size/4 - 1, p.y + jump - p.size/2 - 2, 3, 3);
+           // Fallback if image fails to load
+           ctx.fillStyle = '#f59e0b';
+           ctx.fillRect(p.x - 10, p.y + jump - 10, 20, 20);
         }
 
         // Draw Name text
-        ctx.font = '10px "Press Start 2P", monospace';
+        ctx.font = '12px "JetBrains Mono", monospace';
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText(p.text, p.x, p.y + jump - p.size - 8);
+        ctx.fillText(p.name, p.x, p.y + jump - 25);
       });
 
       animationId = requestAnimationFrame(render);
     };
 
-    render();
+    animalImage.onload = () => {
+      render();
+    };
+    
+    // In case image fails or is cached
+    if (animalImage.complete) {
+      render();
+    }
+
     return () => cancelAnimationFrame(animationId);
   }, [visitors]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/visitors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, color: '#ffffff', accessory: animalId.toString() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi mạng');
+      
+      const newV = {
+        ...data,
+        x: canvasRef.current ? canvasRef.current.width / 2 : 300,
+        y: canvasRef.current ? canvasRef.current.height / 2 : 200,
+        targetX: canvasRef.current ? canvasRef.current.width / 2 : 300,
+        targetY: canvasRef.current ? canvasRef.current.height / 2 : 200,
+        vx: 0,
+        vy: 0,
+        bouncePhase: 0,
+        animalId: animalId
+      };
+      
+      setVisitors(prev => [newV, ...prev]);
+      visitorsRef.current.push(newV);
+      setName('');
+    } catch (err) {
+      setErrorMsg(err.message);
+    }
+    setLoading(false);
+  };
 
   return (
     <section className="content-section visitor-section" style={{ marginTop: '4rem', marginBottom: '4rem' }}>
       <div className="section-grid">
-        <div className="section-heading reveal">
+        <div className="section-heading reveal" style={{ textAlign: 'center' }}>
           <span className="section-tag">GUESTBOOK</span>
-          <h2>Ký tên & Lưu dấu ấn</h2>
-          <p>Nhập tên để xuất hiện trong thế giới pixel của mình nhé!</p>
+          <h2>Lưu Dấu Ấn Pixel</h2>
+          <p>Chọn một nhân vật đại diện và để lại tên của bạn trong thế giới pixel này nhé!</p>
         </div>
         
-        <div className="visitor-layout" style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr 2fr' }}>
-          <form className="pixel-window reveal" onSubmit={handleSubmit}>
-            <div className="window-bar">
-              <span>CHECK_IN.EXE</span>
-              <div><i /><i /><i /></div>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '2rem',
+          background: '#111827',
+          border: '2px solid #333',
+          borderRadius: '12px',
+          padding: '2rem',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+        }} className="reveal">
+          
+          <div className="visitor-canvas" style={{ 
+            background: 'linear-gradient(180deg, #1e1e2f 0%, #151522 100%)', 
+            border: '4px solid #1f2937', 
+            borderRadius: '12px', 
+            overflow: 'hidden', 
+            position: 'relative', 
+            height: '400px',
+            width: '100%',
+            boxShadow: 'inset 0 10px 30px rgba(0,0,0,0.5)'
+          }}>
+             <canvas ref={canvasRef} width={800} height={400} style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }} />
+             {visitors.length === 0 && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#6b7280', fontSize: '1rem', textAlign: 'center', fontFamily: 'monospace' }}>Chưa có ai ở đây cả.<br/>Hãy là người đầu tiên!</div>}
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px' }}>1. Chọn nhân vật của bạn</span>
+              <div style={{ 
+                display: 'flex', 
+                gap: '10px', 
+                overflowX: 'auto', 
+                padding: '10px 0',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#4b5563 transparent'
+              }}>
+                {Array.from({ length: 20 }).map((_, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => setAnimalId(idx)}
+                    style={{
+                      minWidth: '50px',
+                      height: '50px',
+                      borderRadius: '8px',
+                      border: animalId === idx ? '3px solid #10b981' : '2px solid #374151',
+                      background: animalId === idx ? 'rgba(16, 185, 129, 0.1)' : '#1f2937',
+                      cursor: 'pointer',
+                      backgroundImage: 'url(/animals.jpg)',
+                      backgroundSize: '500% 400%',
+                      backgroundPosition: `${(idx % 5) * 25}% ${Math.floor(idx / 5) * 33.333}%`,
+                      imageRendering: 'pixelated',
+                      transition: 'all 0.2s',
+                      transform: animalId === idx ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="form-grid" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <label className="form-full">
-                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>TÊN CỦA BẠN *</span>
-                <input required value={name} onChange={e => setName(e.target.value)} placeholder="Nhập tên..." maxLength={15} style={{ background: '#0a0a0a', border: '2px solid #333', color: '#fff', padding: '0.8rem', width: '100%', outline: 'none', fontFamily: 'monospace' }} />
+
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <label style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px' }}>2. Nhập tên hiển thị</span>
+                <input 
+                  required 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  placeholder="Ví dụ: John Doe" 
+                  maxLength={15} 
+                  style={{ 
+                    background: '#1f2937', 
+                    border: '2px solid #374151', 
+                    borderRadius: '8px',
+                    color: '#fff', 
+                    padding: '1rem', 
+                    width: '100%', 
+                    outline: 'none', 
+                    fontFamily: '"JetBrains Mono", monospace',
+                    fontSize: '1rem',
+                    transition: 'border-color 0.2s'
+                  }} 
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#374151'}
+                />
               </label>
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <label style={{ flex: 1 }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>MÀU SẮC</span>
-                  <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: '100%', height: '36px', padding: '0', border: '2px solid #333', background: '#0a0a0a', cursor: 'pointer' }} />
-                </label>
-                <label style={{ flex: 1 }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#888' }}>PHỤ KIỆN</span>
-                  <select value={accessory} onChange={e => setAccessory(e.target.value)} style={{ width: '100%', height: '36px', padding: '0 0.5rem', border: '2px solid #333', background: '#0a0a0a', color: '#fff', outline: 'none', fontFamily: 'monospace' }}>
-                    <option value="none">Không có</option>
-                    <option value="hat">Mũ rơm</option>
-                    <option value="glasses">Kính râm</option>
-                    <option value="bow">Nơ hồng</option>
-                  </select>
-                </label>
-              </div>
-
-              <button disabled={loading} className="pixel-button pixel-button--primary" type="submit" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                {loading ? 'ĐANG GỬI...' : 'ĐIỂM DANH'} <Send size={16} />
+              <button 
+                disabled={loading} 
+                className="pixel-button" 
+                type="submit" 
+                style={{ 
+                  background: '#3b82f6', 
+                  color: 'white', 
+                  padding: '1rem 2rem', 
+                  borderRadius: '8px',
+                  border: 'none',
+                  fontWeight: 'bold',
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  gap: '0.5rem',
+                  fontSize: '1rem',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1,
+                  flex: '0 0 auto'
+                }}
+              >
+                {loading ? 'ĐANG KÝ TÊN...' : 'KÝ TÊN'} <Send size={18} />
               </button>
-
-              {errorMsg && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontFamily: 'monospace' }}>{errorMsg}</p>}
-              
-              <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Users size={14} /> <span>{visitors.length} LƯỢT TRUY CẬP</span>
-                </div>
-                <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  {visitors.map(v => (
-                    <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed #333', paddingBottom: '0.2rem' }}>
-                      <span style={{ color: '#ccc' }}>{v.name}</span>
-                      <span style={{ color: '#555' }}>{v.ip}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
+
+            {errorMsg && <p style={{ color: '#ef4444', fontSize: '0.9rem', fontFamily: '"JetBrains Mono", monospace', margin: 0 }}>{errorMsg}</p>}
+            
+            <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6b7280', fontSize: '0.85rem', fontFamily: '"JetBrains Mono", monospace' }}>
+              <Users size={16} /> Đã có {visitors.length} người lưu dấu ấn
+            </div>
+            
           </form>
-          
-          <div className="visitor-canvas reveal" style={{ background: '#111827', border: '4px solid #1f2937', borderRadius: '8px', overflow: 'hidden', position: 'relative', minHeight: '350px' }}>
-             <canvas ref={canvasRef} width={600} height={400} style={{ width: '100%', height: '100%', display: 'block', imageRendering: 'pixelated' }} />
-             {visitors.length === 0 && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#4b5563', fontSize: '0.8rem', textAlign: 'center', fontFamily: 'monospace' }}>Chưa có ai ở đây cả.<br/>Hãy là người đầu tiên!</div>}
-          </div>
         </div>
       </div>
     </section>
