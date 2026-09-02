@@ -8,7 +8,7 @@ import { apiRequest } from '../lib/api';
 import VisitorBox from '../components/VisitorBox';
 import ProjectReactions from '../components/ProjectReactions';
 import BugSmasher from '../components/BugSmasher';
-import StickyBoard from '../components/StickyBoard';
+import WelcomeModal from '../components/WelcomeModal';
 import GlobalStickyNotes from '../components/GlobalStickyNotes';
 import HiddenTerminal from '../components/HiddenTerminal';
 import SpotlightMode from '../components/SpotlightMode';
@@ -164,6 +164,7 @@ export default function Home() {
     <div className="portfolio-shell">
       <a className="skip-link" href="#home">Skip to content</a><div className="pixel-decor" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
       <EasterEggManager />
+        <WelcomeModal />
         <header className="site-header"><nav className="nav-wrap" aria-label="Primary navigation">
         <button className="brand" onClick={() => go('home')} aria-label="Hai Dang — home"><span>HD</span><b>HAIDANG.DEV</b></button>
         <div className={`nav-links ${menuOpen ? 'is-open' : ''}`}>{navIds.map((id, index) => <button key={id} aria-current={active === id ? 'page' : undefined} className={active === id ? 'is-active' : ''} onClick={() => go(id)}><span>0{index + 1}.</span>{t.nav[id]}</button>)}</div>
@@ -186,7 +187,7 @@ export default function Home() {
         <section id="stack" className="content-section stack-section"><div className="section-grid"><div className="section-heading section-heading--center reveal"><span className="section-tag">{t.stack.tag}</span><h2>{t.stack.title}</h2><p>{t.stack.subtitle}</p></div><div className="stack-grid">{t.stack.groups.map(([group, items], groupIndex) => <article className="stack-card reveal" key={group}><div className="stack-card__top"><span>0{groupIndex + 1}</span><h3>{group}</h3></div><div>{items.map((item) => <span className="stack-chip" key={item}><i>{item.slice(0, 2).toUpperCase()}</i>{item}</span>)}</div></article>)}</div><PhysicsSkillCloud groups={t.stack.groups} /></div></section>
         <section className="content-section process-section"><div className="section-grid"><div className="section-heading reveal"><span className="section-tag">{t.process.tag}</span><h2>{t.process.title}</h2></div><div className="process-grid">{t.process.items.map(([number, title, text]) => <article className="process-card reveal" key={number}><div><span>{number}</span><i /></div><h3>{title}</h3><p>{text}</p></article>)}</div></div></section>
 
-        <StickyBoard />
+        
         <GlobalStickyNotes />
         <VisitorBox />
 
