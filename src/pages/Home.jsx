@@ -192,7 +192,7 @@ export default function Home() {
         <SpotlightMode />
       </main>
 
-      <footer><div className="section-grid footer-inner"><div className="brand"><span>HD</span><b>HAIDANG.DEV</b></div><p>{t.footer} <i>♥</i> + REACT</p><span>{t.rights}</span><a href="/admin">ADMIN</a><button onClick={() => go('home')}>{t.back} ↑</button></div></footer>
+      <footer><div className="section-grid footer-inner"><div className="brand"><span>HD</span><b>HAIDANG.DEV</b></div><p>{t.footer} <i>♥</i> + REACT</p><span>{t.rights}</span><button onClick={() => window.dispatchEvent(new Event('toggleTerminal'))} style={{background: 'none', border: 'none', color: '#6b7280', fontFamily: 'monospace', cursor: 'pointer', padding: 0}}>_CMD</button><a href="/admin">ADMIN</a><button onClick={() => go('home')}>{t.back} ↑</button></div></footer>
       <aside className={`music-player ${playing ? 'is-playing' : ''}`} aria-label={t.controls.music}><button onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>{playing ? <Pause size={15} /> : <Play size={15} />}</button><Music2 size={15} /><div><span>{playing ? 'PIXEL DREAMS' : 'CHIPTUNE RADIO'}</span><i>{playing ? 'NOW PLAYING' : 'PRESS PLAY'}</i></div><Volume2 size={14} /><input aria-label="Volume" type="range" min="0.02" max="0.3" step="0.01" value={volume} onChange={(e) => setVolume(Number(e.target.value))} /></aside>
     </div>
   );

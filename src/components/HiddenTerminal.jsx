@@ -19,8 +19,14 @@ export default function HiddenTerminal() {
         setIsOpen(prev => !prev);
       }
     };
+    const handleToggleEvent = () => setIsOpen(prev => !prev);
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('toggleTerminal', handleToggleEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('toggleTerminal', handleToggleEvent);
+    };
   }, []);
 
   useEffect(() => {
