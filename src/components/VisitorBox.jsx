@@ -1,10 +1,49 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Users } from 'lucide-react';
+import { animalSprites, drawSprite } from '../lib/animalSprites';
+
+// Helper component to render a single sprite on a tiny canvas
+function SpriteIcon({ sprite, selected, onClick }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // center is 25, 25 for a 50x50 canvas
+      drawSprite(ctx, sprite, 25, 25, 3);
+    }
+  }, [sprite]);
+
+  return (
+    <div 
+      onClick={onClick}
+      style={{
+        minWidth: '50px',
+        height: '50px',
+        borderRadius: '8px',
+        border: selected ? '3px solid #10b981' : '2px solid #374151',
+        background: selected ? 'rgba(16, 185, 129, 0.1)' : '#1f2937',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.2s',
+        transform: selected ? 'scale(1.1)' : 'scale(1)',
+        flexShrink: 0
+      }}
+      title={sprite.name}
+    >
+      <canvas ref={canvasRef} width={50} height={50} style={{ imageRendering: 'pixelated' }} />
+    </div>
+  );
+}
 
 export default function VisitorBox() {
   const [visitors, setVisitors] = useState([]);
   const [name, setName] = useState('');
-  const [animalId, setAnimalId] = useState(0);
+  const [animalId, setAnimalId] = useState(0); // Index in animalSprites
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -18,8 +57,10 @@ export default function VisitorBox() {
         setVisitors(data);
         visitorsRef.current = data.map(v => {
           let aId = parseInt(v.accessory);
-          if (isNaN(aId) || aId < 0 || aId > 19) aId = Math.floor(Math.random() * 20); // Fallback for old visitors
-
+          // Map old invalid IDs or out of bounds to a random valid sprite
+          if (isNaN(aId) || aId < 0 || aId >= animalSprites.length) {
+            aId = Math.floor(Math.random() * animalSprites.length);
+          }
           return {
             ...v,
             x: Math.random() * 600,
@@ -42,10 +83,6 @@ export default function VisitorBox() {
     let animationId;
     let frame = 0;
     
-    // Load animal spritesheet
-    const animalImage = new Image();
-    animalImage.src = '/animals.jpg';
-
     const render = () => {
       frame++;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -55,13 +92,13 @@ export default function VisitorBox() {
       // Group behavior: mode 0 (wander), mode 1 (flock)
       const mode = Math.floor(frame / 600) % 2;
 
-      vList.forEach((p, i) => {
-        if (mode === 0) { // Wander
+      vList.forEach((p) => {
+        if (mode === 0) { 
           if (Math.random() < 0.02) {
             p.targetX = Math.max(20, Math.min(canvas.width - 20, p.x + (Math.random() - 0.5) * 100));
-            p.targetY = Math.max(20, Math.min(canvas.height - 20, p.y + (Math.random() - 0.5) * 100));
+            p.targetY = Math.max(30, Math.min(canvas.height - 30, p.y + (Math.random() - 0.5) * 100));
           }
-        } else if (mode === 1) { // Flock towards center slightly
+        } else if (mode === 1) { 
           if (Math.random() < 0.05) {
             p.targetX = canvas.width / 2 + (Math.random() - 0.5) * 300;
             p.targetY = canvas.height / 2 + (Math.random() - 0.5) * 200;
@@ -71,57 +108,36 @@ export default function VisitorBox() {
         p.x += (p.targetX - p.x) * 0.02;
         p.y += (p.targetY - p.y) * 0.02;
 
-        const jump = Math.sin(frame * 0.1 + p.bouncePhase) * 3;
+        const jump = Math.sin(frame * 0.1 + p.bouncePhase) * 4;
         
-        // Draw animal sprite
-        if (animalImage.complete && animalImage.naturalWidth > 0) {
-           const cols = 5;
-           const rows = 4;
-           const sWidth = animalImage.naturalWidth / cols;
-           const sHeight = animalImage.naturalHeight / rows;
-           const col = p.animalId % cols;
-           const row = Math.floor(p.animalId / cols);
-           
-           // Make them face direction of movement
-           const isMovingLeft = p.targetX < p.x;
-           
-           ctx.save();
-           const drawX = p.x;
-           const drawY = p.y + jump;
-           
-           if (isMovingLeft) {
-             ctx.translate(drawX, drawY);
-             ctx.scale(-1, 1);
-             ctx.drawImage(animalImage, col * sWidth, row * sHeight, sWidth, sHeight, -20, -20, 40, 40);
-           } else {
-             ctx.translate(drawX, drawY);
-             ctx.drawImage(animalImage, col * sWidth, row * sHeight, sWidth, sHeight, -20, -20, 40, 40);
-           }
-           ctx.restore();
+        const sprite = animalSprites[p.animalId] || animalSprites[0];
+        const isMovingLeft = p.targetX < p.x;
+        
+        ctx.save();
+        const drawX = p.x;
+        const drawY = p.y + jump;
+        
+        if (isMovingLeft) {
+          ctx.translate(drawX, drawY);
+          ctx.scale(-1, 1);
+          drawSprite(ctx, sprite, 0, 0, 3);
         } else {
-           // Fallback if image fails to load
-           ctx.fillStyle = '#f59e0b';
-           ctx.fillRect(p.x - 10, p.y + jump - 10, 20, 20);
+          ctx.translate(drawX, drawY);
+          drawSprite(ctx, sprite, 0, 0, 3);
         }
+        ctx.restore();
 
         // Draw Name text
-        ctx.font = '12px "JetBrains Mono", monospace';
+        ctx.font = '10px "JetBrains Mono", monospace';
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText(p.name, p.x, p.y + jump - 25);
+        ctx.fillText(p.name, p.x, p.y + jump - 22);
       });
 
       animationId = requestAnimationFrame(render);
     };
 
-    animalImage.onload = () => {
-      render();
-    };
-    
-    // In case image fails or is cached
-    if (animalImage.complete) {
-      render();
-    }
+    render();
 
     return () => cancelAnimationFrame(animationId);
   }, [visitors]);
@@ -207,24 +223,12 @@ export default function VisitorBox() {
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#4b5563 transparent'
               }}>
-                {Array.from({ length: 20 }).map((_, idx) => (
-                  <div 
-                    key={idx}
-                    onClick={() => setAnimalId(idx)}
-                    style={{
-                      minWidth: '50px',
-                      height: '50px',
-                      borderRadius: '8px',
-                      border: animalId === idx ? '3px solid #10b981' : '2px solid #374151',
-                      background: animalId === idx ? 'rgba(16, 185, 129, 0.1)' : '#1f2937',
-                      cursor: 'pointer',
-                      backgroundImage: 'url(/animals.jpg)',
-                      backgroundSize: '500% 400%',
-                      backgroundPosition: `${(idx % 5) * 25}% ${Math.floor(idx / 5) * 33.333}%`,
-                      imageRendering: 'pixelated',
-                      transition: 'all 0.2s',
-                      transform: animalId === idx ? 'scale(1.1)' : 'scale(1)'
-                    }}
+                {animalSprites.map((sprite, idx) => (
+                  <SpriteIcon 
+                    key={sprite.id} 
+                    sprite={sprite} 
+                    selected={animalId === idx} 
+                    onClick={() => setAnimalId(idx)} 
                   />
                 ))}
               </div>
@@ -274,7 +278,7 @@ export default function VisitorBox() {
                   fontSize: '1rem',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.7 : 1,
-                  flex: '0 0 auto'
+                  flex: '1 1 150px'
                 }}
               >
                 {loading ? 'ĐANG KÝ TÊN...' : 'KÝ TÊN'} <Send size={18} />
