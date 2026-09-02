@@ -27,8 +27,7 @@ export default function WelcomeModal() {
     { cmd: "sys.spawn('bug')", desc: "Đập những con bọ chạy ngang màn hình để nhận điểm" },
     { cmd: "sys.note('double_click')", desc: "Nhấp đúp chuột vào bất kỳ đâu để dán Sticky Note" },
     { cmd: "sys.toggle('spotlight')", desc: "Bật chế độ đèn pin (góc dưới bên trái màn hình)" },
-    { cmd: "sys.quest('easter_egg')", desc: "Tìm 5 viên ngọc ẩn để kích hoạt pháo hoa" },
-    { cmd: "sys.open('terminal')", desc: "Bấm phím `~` hoặc nút _CMD ở footer để mở Terminal ẩn" }
+        { cmd: "sys.open('terminal')", desc: "Bấm phím `~` hoặc nút _CMD ở footer để mở Terminal ẩn" }
   ];
 
   const content = (
