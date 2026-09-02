@@ -174,4 +174,18 @@ router.post('/bugs', async (_req, res) => {
   res.json({ bugs_smashed: row.stat_value });
 });
 
+// Sticky Notes
+router.get('/notes', async (_req, res) => {
+  const [rows] = await pool.query('SELECT id, text, color, x, y FROM sticky_notes');
+  res.json(rows);
+});
+
+router.post('/notes', async (req, res) => {
+  const { text, color, x, y } = req.body;
+  if (!text || !String(text).trim()) return res.status(400).json({ error: 'Text required' });
+  const [result] = await pool.query('INSERT INTO sticky_notes (text, color, x, y) VALUES (?, ?, ?, ?)', [String(text).trim().substring(0, 100), color || '#ffff88', Number(x)||0, Number(y)||0]);
+  const [[note]] = await pool.query('SELECT * FROM sticky_notes WHERE id=?', [result.insertId]);
+  res.json(note);
+});
+
 module.exports = router;

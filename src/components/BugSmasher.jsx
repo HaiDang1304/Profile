@@ -58,11 +58,11 @@ export default function BugSmasher() {
     // Add blood splat
     const splat = document.createElement('div');
     splat.style.position = 'fixed';
-    splat.style.left = \`\${bug.x}px\`;
-    splat.style.top = \`\${bug.y}px\`;
+    splat.style.left = `${bug.x}px`;
+    splat.style.top = `${bug.y}px`;
     splat.style.width = '30px';
     splat.style.height = '30px';
-    splat.style.background = 'url("data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 100 100\\'%3E%3Cpath fill=\\'%23ef4444\\' d=\\'M50,10 C20,20 10,50 30,80 C60,90 90,60 70,30 Z\\'/%3E%3C/svg%3E") no-repeat center';
+    splat.style.background = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Cpath fill=\'%23ef4444\' d=\'M50,10 C20,20 10,50 30,80 C60,90 90,60 70,30 Z\'/%3E%3C/svg%3E") no-repeat center';
     splat.style.zIndex = 9999;
     splat.style.pointerEvents = 'none';
     splat.style.transition = 'opacity 2s';
@@ -116,7 +116,7 @@ export default function BugSmasher() {
         fontSize: '10px', fontFamily: 'monospace', color: '#6b7280',
         pointerEvents: 'none', zIndex: 50
       }}>
-        {totalBugs > 0 && \`BUGS FIXED: \${totalBugs}\`}
+        {totalBugs > 0 && `BUGS FIXED: ${totalBugs}`}
       </div>
 
       {bug && (
@@ -130,10 +130,10 @@ export default function BugSmasher() {
             height: '24px',
             cursor: 'crosshair',
             zIndex: 9998,
-            transform: \`translate(-50%, -50%) rotate(\${bug.rotation + (bug.wobble || 0)}deg)\`,
-            // simple pixel bug representation using box-shadow
-            background: '#111',
-            boxShadow: '0 0 0 2px #333, -4px 0 0 #000, 4px 0 0 #000, 0 -4px 0 #000, 0 4px 0 #000'
+            transform: `translate(-50%, -50%) rotate(${bug.rotation + (bug.wobble || 0)}deg)`,
+            // pixel ladybug background
+            background: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'%3E%3Crect x=\'6\' y=\'2\' width=\'4\' height=\'3\' fill=\'%23000\'/%3E%3Crect x=\'4\' y=\'5\' width=\'8\' height=\'10\' fill=\'%23f00\'/%3E%3Crect x=\'7\' y=\'5\' width=\'2\' height=\'10\' fill=\'%23000\'/%3E%3Crect x=\'5\' y=\'7\' width=\'2\' height=\'2\' fill=\'%23000\'/%3E%3Crect x=\'9\' y=\'7\' width=\'2\' height=\'2\' fill=\'%23000\'/%3E%3Crect x=\'5\' y=\'11\' width=\'2\' height=\'2\' fill=\'%23000\'/%3E%3Crect x=\'9\' y=\'11\' width=\'2\' height=\'2\' fill=\'%23000\'/%3E%3Crect x=\'3\' y=\'6\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'12\' y=\'6\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'2\' y=\'9\' width=\'2\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'12\' y=\'9\' width=\'2\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'3\' y=\'12\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'12\' y=\'12\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'5\' y=\'1\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3Crect x=\'10\' y=\'1\' width=\'1\' height=\'1\' fill=\'%23000\'/%3E%3C/svg%3E") no-repeat center center / contain',
+            imageRendering: 'pixelated'
           }}
         />
       )}
