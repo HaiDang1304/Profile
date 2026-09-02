@@ -11,7 +11,7 @@ export default function GlobalStickyNotes() {
 
     const handleDblClick = (e) => {
       // Don't trigger if clicking inside a note or interactive elements
-      if (e.target.closest('.sticky-note-item') || e.target.closest('button') || e.target.closest('a')) return;
+      if (e.target.closest('.sticky-note-item') || e.target.closest('button') || e.target.closest('a') || e.target.closest('#home') || e.target.closest('.site-header')) return;
       
       const x = e.pageX;
       const y = e.pageY;
