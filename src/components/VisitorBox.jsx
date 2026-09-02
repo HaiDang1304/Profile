@@ -6,6 +6,7 @@ export default function VisitorBox() {
   const [visitors, setVisitors] = useState([]);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const canvasRef = useRef(null);
 
   const fetchVisitors = async () => {
@@ -25,12 +26,13 @@ export default function VisitorBox() {
     e.preventDefault();
     if (!name.trim() || loading) return;
     setLoading(true);
+    setErrorMsg('');
     try {
-      await apiRequest('/visitors', { method: 'POST', body: { name } });
+      await apiRequest('/visitors', { method: 'POST', body: JSON.stringify({ name }) });
       setName('');
       fetchVisitors();
     } catch (err) {
-      console.error(err);
+      setErrorMsg(err.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -196,6 +198,8 @@ export default function VisitorBox() {
               <button disabled={loading} className="pixel-button pixel-button--primary" type="submit" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                 {loading ? 'ĐANG GỬI...' : 'ĐIỂM DANH'} <Send size={16} />
               </button>
+
+              {errorMsg && <p style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem', fontFamily: 'monospace' }}>{errorMsg}</p>}
               
               <div style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: '#888', fontFamily: 'monospace' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>

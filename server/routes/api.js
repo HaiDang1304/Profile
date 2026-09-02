@@ -131,7 +131,11 @@ router.get('/admin/stats', requireAdmin, async (_req, res) => {
 router.post('/visitors', async (req, res) => {
   const { name } = req.body;
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
-  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Missing name' });
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Vui lòng nhập tên' });
+  
+  const [[existing]] = await pool.query('SELECT id FROM visitors WHERE ip=?', [ip]);
+  if (existing) return res.status(429).json({ error: 'Bạn đã điểm danh rồi! (Mỗi thiết bị/IP chỉ được 1 lần)' });
+
   const [result] = await pool.query('INSERT INTO visitors (ip, name) VALUES (?,?)', [ip, String(name).trim()]);
   const [[visitor]] = await pool.query('SELECT * FROM visitors WHERE id=?', [result.insertId]);
   return res.status(201).json(visitor);
