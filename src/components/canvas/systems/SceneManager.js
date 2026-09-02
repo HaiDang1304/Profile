@@ -13,7 +13,7 @@ import { registerAllSprites } from '../data/spriteManifest';
 import { viewportTransform } from '../core/ViewportTransform';
 import { WorldArtRenderer } from '../world/WorldArtRenderer';
 import { AtmosphereSystem } from './AtmosphereSystem';
-import { SceneBackdropRenderer } from '../world/SceneBackdropRenderer';
+import { ProceduralBackdropRenderer } from '../world/ProceduralBackdropRenderer';
 import { LivingSceneRenderer } from '../world/LivingSceneRenderer';
 
 export class SceneManager {
@@ -21,7 +21,7 @@ export class SceneManager {
     this.scenes = new Map();
     this.compositor = new ParallaxCompositor();
     this.atmosphere = new AtmosphereSystem();
-    this.backdrops = new SceneBackdropRenderer();
+    this.backdrops = new ProceduralBackdropRenderer();
     this.livingScene = new LivingSceneRenderer();
     this.initCount = 0;
 
@@ -89,8 +89,8 @@ export class SceneManager {
     // ─────────────────────────────────────────────────────────────
     WorldBaseLayer.render(ctx, scrollProgress, roundedCameraPos, time);
 
-    // Each chapter owns a full-screen generated panorama. The renderer also
-    // applies subtle focal-point parallax and scene-specific interactive motion.
+    // Every chapter is drawn procedurally on a low-resolution pixel canvas.
+    // No generated PNG/WebP backdrop participates in the render pipeline.
     const hasDetailedBackdrop = this.backdrops.render(ctx, scrollProgress, time, reducedMotion);
 
     // ─────────────────────────────────────────────────────────────

@@ -1,12 +1,28 @@
-# React + Vite
+# HaiDang.dev — Pixel Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Portfolio React/Vite với giao diện pixel, dashboard quản trị và API Express kết nối MariaDB/MySQL của XAMPP.
 
-Currently, two official plugins are available:
+## Chạy trên máy
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Mở XAMPP Control Panel và bật **MySQL**.
+2. Mở terminal thứ nhất và chạy `npm run server`.
+3. Mở terminal thứ hai và chạy `npm run dev`.
+4. Portfolio: `http://localhost:5173`
+5. Dashboard: `http://localhost:5173/admin`
+6. phpMyAdmin: `http://localhost/phpmyadmin`
 
-## Expanding the ESLint configuration
+Database `haidang_portfolio` cùng các bảng sẽ được tạo tự động ở lần chạy API đầu tiên.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tài khoản quản trị local mặc định
+
+- Tài khoản: `admin.dev`
+- Mật khẩu: `change-me-now`
+
+Trước khi triển khai, sao chép `server/.env.example` thành `server/.env` và thay mật khẩu, JWT secret cùng thông tin MySQL. Xem thêm [server/README.md](server/README.md).
+
+## Kiểm tra
+
+```bash
+npm run lint
+npm run build
+```

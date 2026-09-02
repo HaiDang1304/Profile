@@ -1,26 +1,11 @@
-# Server for my-project
+# Portfolio API — XAMPP MySQL
 
-This small Express server provides simple API endpoints backed by MongoDB (via Mongoose) for storing profile visits and contact messages.
+Backend Express lưu hồ sơ, dự án, bài viết và tin nhắn liên hệ trong MariaDB/MySQL của XAMPP.
 
-Setup
+1. Mở XAMPP Control Panel và bật **MySQL**.
+2. Sao chép `.env.example` thành `.env`, sau đó đổi `JWT_SECRET` và `ADMIN_PASSWORD`.
+3. Chạy `npm install` và `npm run dev` trong thư mục `server`.
 
-1. Copy `.env.example` to `.env` and set `MONGO_URI`.
-2. Install deps:
+Database `haidang_portfolio` và các bảng được tạo tự động. Xem dữ liệu tại `http://localhost/phpmyadmin`.
 
-```bash
-cd server
-npm install
-```
-
-3. Run server:
-
-```bash
-npm run dev
-```
-
-API
-
-- `GET /api/profile` — returns profile doc (contains `visits`).
-- `POST /api/profile/visit` — increments visits and returns `{ visits }`.
-- `GET /api/messages` — returns recent messages.
-- `POST /api/messages` — create message: `{ name, email, message }`.
+Tài khoản mặc định khi chưa có `.env`: `admin.dev` / `change-me-now`. Hãy thay đổi trước khi triển khai.

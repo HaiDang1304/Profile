@@ -91,6 +91,22 @@ function rect(ctx, x, y, width, height, color) {
   ctx.fillRect(Math.round(x), Math.round(y), Math.max(1, Math.round(width)), Math.max(1, Math.round(height)));
 }
 
+function poly(ctx, points, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(Math.round(points[0][0]), Math.round(points[0][1]));
+  for (let index = 1; index < points.length; index += 1) {
+    ctx.lineTo(Math.round(points[index][0]), Math.round(points[index][1]));
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function outlinedRect(ctx, x, y, width, height, fill, outline = '#211c20') {
+  rect(ctx, x - 1, y - 1, width + 2, height + 2, outline);
+  rect(ctx, x, y, width, height, fill);
+}
+
 function routeState(time, speed, seed = 0) {
   const raw = ((time * speed + seed) % 2 + 2) % 2;
   return { position: raw <= 1 ? raw : 2 - raw, direction: raw <= 1 ? 1 : -1 };
@@ -153,49 +169,69 @@ function drawLeg(ctx, side, swing, trousers, shoe) {
 }
 
 function drawWalker(ctx, x, y, time, direction, scene, scale = 3) {
-  const frame = Math.floor(time * 8) % 4;
-  const swing = frame === 0 ? -2 : frame === 2 ? 2 : 0;
-  const bob = frame % 2;
+  const frame = Math.floor(time * 9) % 6;
+  const stride = [-2, -1, 0, 2, 1, 0][frame];
+  const bob = frame === 1 || frame === 4 ? 1 : 0;
   const skin = '#d99a67';
+  const skinLight = '#f0b17a';
+  const skinShadow = '#a96648';
   const hair = '#211d23';
-  const shoe = '#211a1a';
+  const outline = '#1a1820';
+  const shoe = '#17151a';
 
-  rect(ctx, x - 9 * scale, y + 4 * scale, 18 * scale, Math.max(2, scale), 'rgba(15,18,20,.32)');
+  rect(ctx, x - 10 * scale, y + 4 * scale, 20 * scale, Math.max(2, scale), 'rgba(8,14,18,.34)');
+  rect(ctx, x - 6 * scale, y + 6 * scale, 12 * scale, Math.max(1, scale * 0.5), 'rgba(8,14,18,.18)');
   ctx.save();
   ctx.translate(Math.round(x), Math.round(y - bob * scale));
   ctx.scale(direction * scale, scale);
 
-  drawLeg(ctx, -1, swing, scene.trousers, shoe);
-  drawLeg(ctx, 1, -swing, scene.trousers, shoe);
-  rect(ctx, -6, -18, 12, 13, '#211c20');
-  rect(ctx, -5, -17, 10, 11, scene.shirt);
-  rect(ctx, -4, -16, 2, 8, scene.accent);
-  rect(ctx, -4, -8, 8, 3, scene.trousers);
-  drawArm(ctx, -1, -swing, skin, scene.shirt);
-  drawArm(ctx, 1, swing, skin, scene.shirt);
-  rect(ctx, -4, -25, 9, 9, '#211c20');
-  rect(ctx, -3, -24, 7, 7, skin);
-  rect(ctx, -3, -25, 7, 3, hair);
-  rect(ctx, 3, -21, 2, 2, '#2b1d18');
-  rect(ctx, 2, -23, 1, 1, '#f9dfb3');
+  drawLeg(ctx, -1, stride, scene.trousers, shoe);
+  drawLeg(ctx, 1, -stride, scene.trousers, shoe);
+  rect(ctx, -5 + stride, 3, 6, 2, shoe);
+  rect(ctx, 2 - stride, 3, 6, 2, shoe);
+
+  poly(ctx, [[-7, -18], [7, -18], [6, -6], [3, -4], [-4, -4], [-7, -7]], outline);
+  poly(ctx, [[-6, -17], [6, -17], [5, -7], [2, -5], [-3, -5], [-6, -7]], scene.shirt);
+  rect(ctx, -5, -16, 2, 8, scene.accent);
+  rect(ctx, -1, -16, 1, 9, 'rgba(255,255,255,.2)');
+  rect(ctx, -4, -7, 8, 3, scene.trousers);
+  rect(ctx, -4, -6, 1, 1, scene.accent);
+
+  drawArm(ctx, -1, -stride, skin, scene.shirt);
+  drawArm(ctx, 1, stride, skin, scene.shirt);
+  rect(ctx, -8 - stride, -9, 2, 3, skinShadow);
+  rect(ctx, 7 + stride, -9, 2, 3, skinLight);
+
+  rect(ctx, -5, -26, 10, 10, outline);
+  poly(ctx, [[-4, -24], [3, -24], [5, -21], [3, -17], [-3, -17], [-5, -20]], skin);
+  rect(ctx, -3, -23, 5, 2, skinLight);
+  rect(ctx, -4, -26, 8, 3, hair);
+  rect(ctx, -5, -24, 2, 5, hair);
+  rect(ctx, 3, -22, 2, 2, '#5f392c');
+  rect(ctx, 2, -23, 1, 1, '#f7e4c3');
+  rect(ctx, 3, -19, 2, 1, skinShadow);
 
   if (scene.role !== 'maker') {
-    rect(ctx, -7, -27, 15, 2, '#3f2a1d');
-    rect(ctx, -6, -28, 13, 2, '#8f5b2c');
-    rect(ctx, -4, -30, 9, 2, '#c4873c');
-    rect(ctx, -2, -32, 5, 2, '#e1ad52');
+    rect(ctx, -8, -28, 17, 2, '#39271f');
+    rect(ctx, -7, -30, 15, 3, '#8f5b2c');
+    rect(ctx, -5, -32, 11, 3, '#c4873c');
+    rect(ctx, -2, -34, 6, 3, '#e1ad52');
+    rect(ctx, -1, -33, 2, 1, '#f0d27b');
   } else {
-    rect(ctx, -4, -27, 8, 3, '#1c2737');
-    rect(ctx, -7, -16, 3, 10, '#304052');
-    rect(ctx, -8, -13, 2, 5, scene.accent);
+    rect(ctx, -4, -28, 8, 3, '#172238');
+    rect(ctx, -6, -27, 12, 2, '#304d62');
+    outlinedRect(ctx, -10, -15, 4, 9, '#304052', outline);
+    rect(ctx, -9, -13, 2, 4, scene.accent);
   }
 
   if (scene.role === 'porter') {
-    rect(ctx, 7, -16, 8, 8, '#8b552c');
-    rect(ctx, 8, -15, 6, 2, '#d49a49');
+    outlinedRect(ctx, 7, -17, 9, 10, '#8b552c', outline);
+    rect(ctx, 9, -15, 5, 2, '#d49a49');
+    rect(ctx, 8, -12, 7, 1, '#5c3825');
   }
   if (scene.role === 'child') {
-    rect(ctx, -8, -18, 3, 8, '#f4d35e');
+    poly(ctx, [[-9, -18], [-6, -18], [-6, -9], [-9, -11]], '#f4d35e');
+    rect(ctx, -8, -16, 1, 4, '#fff09a');
   }
 
   ctx.restore();
@@ -220,14 +256,21 @@ function drawBirds(ctx, viewport, time, energy, reducedMotion) {
 
 function drawDuck(ctx, x, y, time, direction, scale = 2) {
   const bob = Math.sin(time * 3) > 0 ? 1 : 0;
+  const paddle = Math.floor(time * 6) % 2;
   ctx.save();
   ctx.translate(x, y + bob * scale);
   ctx.scale(direction * scale, scale);
-  rect(ctx, -6, -4, 12, 5, '#6b4a28');
-  rect(ctx, 3, -8, 5, 5, '#286c52');
-  rect(ctx, 7, -6, 4, 2, '#e6ad35');
-  rect(ctx, 5, -7, 1, 1, '#fff7d6');
-  rect(ctx, -4, -5, 5, 2, '#b78643');
+  poly(ctx, [[-9, -5], [-5, -8], [4, -8], [8, -5], [6, 0], [-5, 1], [-10, -2]], '#28231f');
+  poly(ctx, [[-8, -5], [-4, -7], [4, -7], [7, -4], [5, -1], [-5, 0], [-9, -2]], '#8b6030');
+  poly(ctx, [[-6, -6], [0, -7], [4, -4], [0, -1], [-5, -2]], '#c4914a');
+  rect(ctx, 2, -11, 5, 6, '#1f332c');
+  rect(ctx, 3, -10, 4, 5, '#2f8060');
+  rect(ctx, 5, -10, 2, 2, '#68aa83');
+  rect(ctx, 7, -8, 4, 2, '#e6ad35');
+  rect(ctx, 6, -9, 1, 1, '#fff7d6');
+  rect(ctx, 6, -8, 1, 1, '#16191a');
+  rect(ctx, -9, -5, 3, 2, '#ddd0a4');
+  rect(ctx, -2 + paddle * 4, 1, 3, 1, '#d88938');
   ctx.restore();
   rect(ctx, x - direction * 21 * scale, y + 4 * scale, 17 * scale, 1, 'rgba(220,248,245,.55)');
   rect(ctx, x - direction * 14 * scale, y + 7 * scale, 10 * scale, 1, 'rgba(220,248,245,.32)');
@@ -239,13 +282,20 @@ function drawChicken(ctx, x, y, time, direction, scale = 2) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(direction * scale, scale);
-  rect(ctx, -5, -6, 10, 6, '#b84e2c');
-  rect(ctx, 2 + peck, -10 + peck, 6, 6, '#d66b31');
-  rect(ctx, 7 + peck, -7 + peck, 3, 2, '#f2bf3e');
-  rect(ctx, 3 + peck, -12 + peck, 3, 2, '#df3d35');
-  rect(ctx, -8, -8, 4, 4, '#7a3228');
-  rect(ctx, -3 + step, 0, 2, 4, '#a45a2b');
+  poly(ctx, [[-8, -7], [-4, -10], [3, -9], [6, -5], [4, 0], [-5, 0], [-9, -3]], '#5c2924');
+  poly(ctx, [[-7, -6], [-3, -9], [3, -8], [5, -5], [3, -1], [-5, -1], [-8, -3]], '#c95f31');
+  poly(ctx, [[-5, -7], [0, -7], [3, -4], [-2, -2], [-6, -3]], '#e2833c');
+  rect(ctx, 2 + peck, -12 + peck, 6, 7, '#d66b31');
+  rect(ctx, 4 + peck, -11 + peck, 4, 3, '#ef9250');
+  rect(ctx, 7 + peck, -8 + peck, 4, 2, '#f2bf3e');
+  rect(ctx, 4 + peck, -14 + peck, 2, 3, '#df3d35');
+  rect(ctx, 6 + peck, -13 + peck, 2, 2, '#ef5142');
+  rect(ctx, 7 + peck, -11 + peck, 1, 1, '#191919');
+  poly(ctx, [[-7, -8], [-11, -12], [-10, -6], [-14, -9], [-11, -3]], '#743125');
+  rect(ctx, -4 + step, 0, 2, 4, '#a45a2b');
   rect(ctx, 3 - step, 0, 2, 4, '#a45a2b');
+  rect(ctx, -6 + step, 4, 5, 1, '#d08a36');
+  rect(ctx, 2 - step, 4, 5, 1, '#d08a36');
   ctx.restore();
 }
 
@@ -255,15 +305,23 @@ function drawBuffalo(ctx, x, y, time, direction, scale = 2) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(direction * scale, scale);
-  rect(ctx, -13, -12, 25, 12, '#443b34');
-  rect(ctx, 7, -16, 11, 10, '#54483e');
-  rect(ctx, 15, -18, 5, 3, '#332c29');
-  rect(ctx, 11, -18, 2, 4, '#d8c49d');
-  rect(ctx, 17, -18, 2, 4, '#d8c49d');
-  rect(ctx, -10 + step, 0, 3, 9, '#302925');
-  rect(ctx, 7 - step, 0, 3, 9, '#302925');
-  rect(ctx, -16, -11, 4, 2, '#342b27');
-  rect(ctx, -18, -10 + tail, 2, 7, '#342b27');
+  poly(ctx, [[-16, -14], [-11, -18], [7, -18], [14, -13], [12, -3], [7, 1], [-11, 0], [-17, -5]], '#282522');
+  poly(ctx, [[-14, -13], [-10, -16], [7, -16], [12, -12], [10, -5], [5, -2], [-11, -2], [-15, -6]], '#4b4038');
+  rect(ctx, -9, -15, 10, 3, '#625348');
+  rect(ctx, -12, -8, 19, 4, '#3c342f');
+  poly(ctx, [[8, -15], [12, -20], [19, -19], [22, -14], [20, -8], [13, -7], [9, -10]], '#302c29');
+  poly(ctx, [[10, -14], [13, -18], [18, -17], [20, -13], [18, -10], [13, -9]], '#594b40');
+  rect(ctx, 17, -15, 1, 1, '#d9d5c5');
+  rect(ctx, 18, -15, 1, 1, '#101416');
+  poly(ctx, [[12, -19], [7, -22], [4, -21], [10, -17]], '#d8c49d');
+  poly(ctx, [[18, -19], [23, -23], [26, -22], [20, -17]], '#d8c49d');
+  rect(ctx, -11 + step, -3, 4, 11, '#302925');
+  rect(ctx, 6 - step, -3, 4, 11, '#302925');
+  rect(ctx, -12 + step, 7, 6, 2, '#19191a');
+  rect(ctx, 5 - step, 7, 6, 2, '#19191a');
+  rect(ctx, -18, -13, 4, 2, '#342b27');
+  rect(ctx, -20, -12 + tail, 2, 8, '#342b27');
+  rect(ctx, -21, -5 + tail, 3, 2, '#211d1c');
   ctx.restore();
 }
 
@@ -273,30 +331,45 @@ function drawDog(ctx, x, y, time, direction, scale = 2) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(direction * scale, scale);
-  rect(ctx, -7, -8, 14, 7, '#ae7139');
-  rect(ctx, 5, -12, 7, 7, '#c78643');
-  rect(ctx, 8, -13, 3, 3, '#5f3b25');
-  rect(ctx, 11, -9, 3, 2, '#33251e');
-  rect(ctx, -5 + step, -1, 3, 7, '#7a4c2c');
-  rect(ctx, 4 - step, -1, 3, 7, '#7a4c2c');
-  rect(ctx, -10, -8, 4, 2, '#81502e');
-  rect(ctx, -13, -11 + tail, 4, 3, '#81502e');
+  poly(ctx, [[-9, -9], [-5, -12], [6, -11], [10, -7], [7, -1], [-6, -1], [-10, -4]], '#3c2921');
+  poly(ctx, [[-8, -8], [-4, -10], [6, -9], [8, -6], [6, -2], [-6, -2], [-9, -4]], '#ae7139');
+  rect(ctx, -5, -9, 7, 3, '#d59b54');
+  poly(ctx, [[5, -10], [8, -15], [14, -14], [16, -10], [14, -6], [8, -6]], '#c78643');
+  poly(ctx, [[7, -14], [8, -18], [12, -14]], '#68422b');
+  rect(ctx, 12, -12, 1, 1, '#f6dfb0');
+  rect(ctx, 13, -12, 1, 1, '#161719');
+  rect(ctx, 15, -10, 3, 2, '#33251e');
+  rect(ctx, 7, -9, 2, 4, '#f0c47d');
+  rect(ctx, -6 + step, -2, 3, 8, '#7a4c2c');
+  rect(ctx, 4 - step, -2, 3, 8, '#7a4c2c');
+  rect(ctx, -7 + step, 5, 5, 2, '#34251f');
+  rect(ctx, 3 - step, 5, 5, 2, '#34251f');
+  rect(ctx, -12, -8, 4, 2, '#81502e');
+  poly(ctx, [[-12, -8], [-17, -13 + tail], [-19, -12 + tail], [-15, -7]], '#81502e');
   ctx.restore();
 }
 
 function drawCat(ctx, x, y, time, scale = 2) {
-  const tailX = Math.sin(time * 3) * 5;
+  const tailX = Math.round(Math.sin(time * 3) * 4);
+  const blink = Math.floor(time * 1.7) % 7 === 0;
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(scale, scale);
-  rect(ctx, -4, -9, 8, 9, '#d1a15d');
-  rect(ctx, -4, -14, 8, 6, '#ddb26b');
-  rect(ctx, -4, -17, 3, 4, '#ddb26b');
-  rect(ctx, 1, -17, 3, 4, '#ddb26b');
-  rect(ctx, -2, -12, 1, 1, '#173849');
-  rect(ctx, 2, -12, 1, 1, '#173849');
-  rect(ctx, 4, -8, 3, 7, '#b9864b');
-  rect(ctx, 6 + tailX, -5, 3, 3, '#b9864b');
+  poly(ctx, [[-6, -10], [-3, -14], [4, -13], [7, -9], [5, 0], [-5, 0], [-7, -5]], '#4b3928');
+  poly(ctx, [[-5, -9], [-2, -12], [4, -11], [6, -8], [4, -1], [-4, -1], [-6, -5]], '#d1a15d');
+  poly(ctx, [[-5, -14], [-4, -19], [-1, -15], [3, -15], [5, -19], [6, -13], [4, -10], [-3, -10]], '#ddb26b');
+  rect(ctx, -4, -17, 2, 2, '#f0ca83');
+  rect(ctx, 3, -17, 2, 2, '#f0ca83');
+  rect(ctx, -2, -13, 1, blink ? 1 : 2, '#173849');
+  rect(ctx, 3, -13, 1, blink ? 1 : 2, '#173849');
+  rect(ctx, 0, -11, 2, 1, '#7c4b45');
+  rect(ctx, -3, -10, 3, 1, '#f1dbb4');
+  rect(ctx, 3, -10, 3, 1, '#f1dbb4');
+  rect(ctx, -3, -8, 2, 5, '#b9864b');
+  rect(ctx, 2, -8, 2, 5, '#b9864b');
+  rect(ctx, 5, -8, 3, 7, '#b9864b');
+  rect(ctx, 7 + tailX, -7, 3, 5, '#b9864b');
+  rect(ctx, 8 + tailX, -9, 3, 3, '#d8ab65');
   ctx.restore();
 }
 
@@ -305,14 +378,20 @@ function drawSampan(ctx, x, y, time, direction, scale = 2) {
   ctx.save();
   ctx.translate(x, y + bob);
   ctx.scale(direction * scale, scale);
-  rect(ctx, -20, -4, 40, 4, '#3d251b');
-  rect(ctx, -16, 0, 32, 6, '#82502a');
-  rect(ctx, -11, 6, 22, 2, '#34221a');
-  rect(ctx, -3, -14, 6, 10, '#486f6a');
+  poly(ctx, [[-23, -4], [23, -4], [17, 7], [-15, 7]], '#34221a');
+  poly(ctx, [[-19, -2], [19, -2], [14, 5], [-13, 5]], '#82502a');
+  rect(ctx, -12, 0, 27, 2, '#b87839');
+  rect(ctx, -10, 6, 20, 2, '#211c19');
+  rect(ctx, -4, -15, 8, 11, '#25353a');
+  rect(ctx, -3, -14, 6, 9, '#486f6a');
+  rect(ctx, -3, -21, 6, 7, '#3b2822');
   rect(ctx, -2, -20, 5, 6, '#d59b65');
-  rect(ctx, -4, -22, 10, 2, '#c99346');
-  rect(ctx, 8, -18, 2, 17, '#5b3821');
-  rect(ctx, 9, -18, 15, 2, '#8b5b2f');
+  rect(ctx, 2, -18, 1, 1, '#30201b');
+  rect(ctx, -5, -23, 11, 2, '#614124');
+  rect(ctx, -3, -25, 7, 2, '#c99346');
+  rect(ctx, 8, -19, 2, 18, '#5b3821');
+  poly(ctx, [[10, -19], [26, -16], [11, -13]], '#8b5b2f');
+  rect(ctx, 20, -16, 7, 2, '#b37b3d');
   ctx.restore();
   rect(ctx, x - direction * 62 * scale, y + 12, 50 * scale, 2, 'rgba(224,250,250,.42)');
 }

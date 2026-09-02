@@ -1,14 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import SpriteShowcase from './components/canvas/debug/SpriteShowcase';
+import AdminDashboard from './pages/AdminDashboard';
 
 export default function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/art" element={<SpriteShowcase />} />
-      </Routes>
-    </Router>
-  );
+  return window.location.pathname.startsWith('/admin') ? <AdminDashboard /> : <Home />;
 }

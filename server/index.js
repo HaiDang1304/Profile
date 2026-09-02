@@ -1,28 +1,26 @@
+require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const apiRoutes = require('./routes/api');
-
-dotenv.config();
+const { initializeDatabase } = require('./database');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const port = Number(process.env.PORT || 4000);
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/my_project_db';
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => {
-    console.error('MongoDB connection error:', err.message);
-    process.exit(1);
-  });
-
+app.disable('x-powered-by');
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
+app.use(express.json({ limit: '1mb' }));
 app.use('/api', apiRoutes);
 
-const port = process.env.PORT || 4000;
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.use((error, _req, res, _next) => {
+  console.error(error);
+  res.status(500).json({ error: 'Đã xảy ra lỗi phía máy chủ.' });
 });
+
+initializeDatabase()
+  .then(() => app.listen(port, () => console.log(`Portfolio API: http://localhost:${port}/api`)))
+  .catch((error) => {
+    console.error('Không thể kết nối MySQL:', error.message);
+    console.error('Hãy bật MySQL trong XAMPP và kiểm tra cấu hình server/.env.');
+    process.exit(1);
+  });
